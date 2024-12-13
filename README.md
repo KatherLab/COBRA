@@ -7,13 +7,13 @@
 
 ### Abstract
 
->Representation learning of pathology whole-slide images (WSIs) has primarily relied on weak supervision with Multiple >Instance Learning (MIL). 
+>Representation learning of pathology whole-slide images (WSIs) has primarily relied on weak supervision with Multiple Instance Learning (MIL). 
 >This approach leads to slide representations highly tailored to a specific clinical task. 
->Self-supervised learning (SSL) has been successfully applied to train histopathology foundation models (FMs) for patch >embedding generation.
+>Self-supervised learning (SSL) has been successfully applied to train histopathology foundation models (FMs) for patch embedding generation.
 >However, generating patient or slide level embeddings remains challenging. 
->Existing approaches for slide representation learning extend the principles of SSL from patch level learning to entire >slides by aligning different augmentations of the slide or by utilizing multimodal data.
->By integrating tile embeddings from multiple FMs, we propose a new single modality SSL method in feature space that >generates useful slide representations.
->Our contrastive pretraining strategy, called CORBA, employs multiple FMs and an architecture based on Mamba-2. CORBA >exceeds performance of state-of-the-art slide encoders on four different public CPTAC cohorts on average by at least $>+4.5\%$ AUC, despite only being pretrained on 3048 WSIs from TCGA. Additionally, COBRA is readily compatible at inference time with previously unseen feature extractors.
+>Existing approaches for slide representation learning extend the principles of SSL from patch level learning to entire slides by aligning different augmentations of the slide or by utilizing multimodal data.
+>By integrating tile embeddings from multiple FMs, we propose a new single modality SSL method in feature space that generates useful slide representations.
+>Our contrastive pretraining strategy, called CORBA, employs multiple FMs and an architecture based on Mamba-2. CORBA exceeds performance of state-of-the-art slide encoders on four different public CPTAC cohorts on average by at least $>+4.5\%$ AUC, despite only being pretrained on 3048 WSIs from TCGA. Additionally, COBRA is readily compatible at inference time with previously unseen feature extractors.
 
 ### Installation
 

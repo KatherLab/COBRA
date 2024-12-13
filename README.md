@@ -31,7 +31,8 @@ uv sync
 To deploy the COBRA model, follow these steps:
 
 1. **Prepare your data**: extract tile embeddings with one or more patch encoders of your preference using [STAMP](https://github.com/KatherLab/STAMP).
-2. **Deploy COBRA**: extract slide level embeddings using COBRA
+2. **Request Access on [Huggingface](https://huggingface.co/KatherLab/COBRA)**.
+3. **Deploy COBRA**: extract slide level embeddings using COBRA
 ```bash 
 python -m cobra.inference.extract_feats --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir> 
 ```

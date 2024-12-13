@@ -1,6 +1,6 @@
 # COBRA
 <p align="center">
-    <img src="cobra.png" alt="failed loading the image" width="300"/>
+    <img src="assets/cobra.png" alt="failed loading the image" width="300"/>
 </p>
 
 [Preprint](https://arxiv.org/abs/2411.13623) | [Download Model](https://huggingface.co/TLenz/COBRA) 

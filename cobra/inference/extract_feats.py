@@ -5,7 +5,6 @@ from tqdm import tqdm
 from glob import glob
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-from tqdm import tqdm 
 from cobra.utils.load_cobra import get_cobra
 import argparse
 from pathlib import Path

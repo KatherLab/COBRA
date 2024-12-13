@@ -2,7 +2,7 @@
 Adapted from: https://github.com/isyangshu/MambaMIL/blob/main/models/MambaMIL.py
 Shu Yang, Yihui Wang, and Hao Chen. MambaMIL: En-
 hancing Long Sequence Modeling with Sequence Reorder-
-ing in Computational Pathology . In proceedings of Medi-
+ing in Computational Pathology. In proceedings of Medi-
 cal Image Computing and Computer Assisted Intervention –
 MICCAI 2024. Springer Nature Switzerland, 2024
 """

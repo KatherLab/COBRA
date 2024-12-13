@@ -33,8 +33,10 @@ dependencies = [
     "mamba-ssm==2.2.2",
     "causal-conv1d==1.4.0",
     "torchvision==0.19.1",
+    "einops>=0.8.0",
+    "huggingface-hub>=0.26.5",
 ]
 
 
 [project.urls]
-"Homepage" = "https://github.com/s1787956/COBRA"
+"Homepage" = "https://github.com/KatherLab/COBRA"

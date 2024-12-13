@@ -1,9 +1,9 @@
-# COBRA
+# COntrastive Biomarker Representation Alignment (COBRA) 
 <p align="center">
     <img src="assets/cobra.png" alt="failed loading the image" width="300"/>
 </p>
 
-[Preprint](https://arxiv.org/abs/2411.13623) | [Download Model](https://huggingface.co/TLenz/COBRA) 
+[Preprint](https://arxiv.org/abs/2411.13623) | [Download Model](https://huggingface.co/KatherLab/COBRA) 
 
 ### Abstract
 
@@ -20,7 +20,7 @@ Our contrastive pretraining strategy, called CORBA, employs multiple FMs and an 
 To install the necessary dependencies, run the following commands:
 
 ```bash
-git clone https://github.com/s1787956/COBRA.git && cd COBRA
+git clone https://github.com/KatherLab/COBRA.git && cd COBRA
 pip install uv
 uv pip install torch==2.4.1 setuptools
 uv sync

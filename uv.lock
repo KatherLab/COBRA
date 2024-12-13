@@ -101,12 +101,15 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "causal-conv1d" },
+    { name = "einops" },
     { name = "h5py" },
+    { name = "huggingface-hub" },
     { name = "jinja2" },
     { name = "mamba-ssm" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "pyyaml" },
+    { name = "setuptools" },
     { name = "torch" },
     { name = "torchvision" },
     { name = "tqdm" },
@@ -115,12 +118,15 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "causal-conv1d", specifier = "==1.4.0" },
+    { name = "einops", specifier = ">=0.8.0" },
     { name = "h5py", specifier = ">=3.12.1" },
+    { name = "huggingface-hub", specifier = ">=0.26.5" },
     { name = "jinja2", specifier = ">=3.1.4" },
     { name = "mamba-ssm", specifier = "==2.2.2" },
     { name = "numpy", specifier = ">=2.0.2" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pyyaml", specifier = ">=6.0.2" },
+    { name = "setuptools", specifier = ">=42" },
     { name = "torch", specifier = "==2.4.1" },
     { name = "torchvision", specifier = "==0.19.1" },
     { name = "tqdm", specifier = ">=4.67.1" },
@@ -825,6 +831,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/79/9608c4546cdbfe3860dd7aa59e3562c9289113398b1a0bd89b68ce0a9d41/safetensors-0.4.5-pp310-pypy310_pp73-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:6ac85d9a8c1af0e3132371d9f2d134695a06a96993c2e2f0bbe25debb9e3f67a", size = 457316 },
     { url = "https://files.pythonhosted.org/packages/0f/23/b17b483f2857835962ad33e38014efd4911791187e177bc23b057d35bee8/safetensors-0.4.5-pp310-pypy310_pp73-musllinux_1_1_aarch64.whl", hash = "sha256:e3cec4a29eb7fe8da0b1c7988bc3828183080439dd559f720414450de076fcab", size = 620565 },
     { url = "https://files.pythonhosted.org/packages/19/46/5d11dc300feaad285c2f1bd784ff3f689f5e0ab6be49aaf568f3a77019eb/safetensors-0.4.5-pp310-pypy310_pp73-musllinux_1_1_x86_64.whl", hash = "sha256:21742b391b859e67b26c0b2ac37f52c9c0944a879a25ad2f9f9f3cd61e7fda8f", size = 606660 },
+]
+
+[[package]]
+name = "setuptools"
+version = "75.6.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/43/54/292f26c208734e9a7f067aea4a7e282c080750c4546559b58e2e45413ca0/setuptools-75.6.0.tar.gz", hash = "sha256:8199222558df7c86216af4f84c30e9b34a61d8ba19366cc914424cdbd28252f6", size = 1337429 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/21/47d163f615df1d30c094f6c8bbb353619274edccf0327b185cc2493c2c33/setuptools-75.6.0-py3-none-any.whl", hash = "sha256:ce74b49e8f7110f9bf04883b730f4765b774ef3ef28f722cce7c273d253aaf7d", size = 1224032 },
 ]
 
 [[package]]

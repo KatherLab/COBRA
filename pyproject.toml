@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=42", "wheel","torch==2.4.1"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = []
+
+[project]
+name = "cobra"
+version = "0.1.0"
+description = "Slide Encoder for Computational Pathology"
+readme = "README.md"
+license = {text = "GPLv3"}
+authors = [
+    {name = "Tim Lenz", email = "tim.lenz@tu-dresden.de"},
+    {name = "Peter Neidlinger", email = "peter.neidlinger@fau.de"}
+]
+requires-python = ">=3.10.0"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "setuptools>=42",
+    "torch==2.4.1",
+    "h5py>=3.12.1",
+    "jinja2>=3.1.4",
+    "numpy>=2.0.2",
+    "pandas>=2.2.3",
+    "pyyaml>=6.0.2",
+    "tqdm>=4.67.1",
+    "mamba-ssm==2.2.2",
+    "causal-conv1d==1.4.0",
+    "torchvision==0.19.1",
+]
+
+
+[project.urls]
+"Homepage" = "https://github.com/s1787956/COBRA"

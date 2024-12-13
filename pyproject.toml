@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=42", "wheel","torch==2.4.1"]
+requires = ["setuptools>=42", "wheel","torch>=2.4.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -23,16 +23,16 @@ classifiers = [
 ]
 dependencies = [
     "setuptools>=42",
-    "torch==2.4.1",
+    "torch>=2.4.1",
     "h5py>=3.12.1",
     "jinja2>=3.1.4",
     "numpy>=2.0.2",
     "pandas>=2.2.3",
     "pyyaml>=6.0.2",
     "tqdm>=4.67.1",
-    "mamba-ssm==2.2.2",
-    "causal-conv1d==1.4.0",
-    "torchvision==0.19.1",
+    "mamba-ssm>=2.2.2",
+    "causal-conv1d>=1.4.0",
+    "torchvision>=0.19.1",
     "einops>=0.8.0",
     "huggingface-hub>=0.26.5",
 ]

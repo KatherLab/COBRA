@@ -7,13 +7,13 @@
 
 ### Abstract
 
-Representation learning of pathology whole-slide images (WSIs) has primarily relied on weak supervision with Multiple Instance Learning (MIL). 
-This approach leads to slide representations highly tailored to a specific clinical task. 
-Self-supervised learning (SSL) has been successfully applied to train histopathology foundation models (FMs) for patch embedding generation.
-However, generating patient or slide level embeddings remains challenging. 
-Existing approaches for slide representation learning extend the principles of SSL from patch level learning to entire slides by aligning different augmentations of the slide or by utilizing multimodal data.
-By integrating tile embeddings from multiple FMs, we propose a new single modality SSL method in feature space that generates useful slide representations.
-Our contrastive pretraining strategy, called CORBA, employs multiple FMs and an architecture based on Mamba-2. CORBA exceeds performance of state-of-the-art slide encoders on four different public CPTAC cohorts on average by at least $+4.5\%$ AUC, despite only being pretrained on 3048 WSIs from TCGA. Additionally, COBRA is readily compatible at inference time with previously unseen feature extractors.
+>Representation learning of pathology whole-slide images (WSIs) has primarily relied on weak supervision with Multiple >Instance Learning (MIL). 
+>This approach leads to slide representations highly tailored to a specific clinical task. 
+>Self-supervised learning (SSL) has been successfully applied to train histopathology foundation models (FMs) for patch >embedding generation.
+>However, generating patient or slide level embeddings remains challenging. 
+>Existing approaches for slide representation learning extend the principles of SSL from patch level learning to entire >slides by aligning different augmentations of the slide or by utilizing multimodal data.
+>By integrating tile embeddings from multiple FMs, we propose a new single modality SSL method in feature space that >generates useful slide representations.
+>Our contrastive pretraining strategy, called CORBA, employs multiple FMs and an architecture based on Mamba-2. CORBA >exceeds performance of state-of-the-art slide encoders on four different public CPTAC cohorts on average by at least $>+4.5\%$ AUC, despite only being pretrained on 3048 WSIs from TCGA. Additionally, COBRA is readily compatible at inference time with previously unseen feature extractors.
 
 ### Installation
 
@@ -36,5 +36,22 @@ To deploy the COBRA model, follow these steps:
 python -m cobra.inference.extract_feats --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir> 
 ```
 
+#### References
+- [STAMP](https://github.com/KatherLab/STAMP)
+- [MoCo-v3](https://github.com/facebookresearch/moco-v3)
 
+## Citation
 
+If you find our work useful in your research or if you use parts of this code please consider citing our [preprint](https://arxiv.org/abs/2411.13623):
+
+```bibtex
+@misc{cobra,
+      title={Unsupervised Foundation Model-Agnostic Slide-Level Representation Learning}, 
+      author={Tim Lenz and Peter Neidlinger and Marta Ligero and Georg Wölflein and Marko van Treeck and Jakob Nikolas Kather},
+      year={2024},
+      eprint={2411.13623},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2411.13623}, 
+}
+```

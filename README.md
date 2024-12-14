@@ -86,7 +86,7 @@ If you find our work useful in your research or if you use parts of this code pl
 ```bibtex
 @misc{cobra,
       title={Unsupervised Foundation Model-Agnostic Slide-Level Representation Learning}, 
-      author={Tim Lenz and Peter Neidlinger and Marta Ligero and Georg Wölflein and Marko van Treeck and Jakob Nikolas Kather},
+      author={Tim Lenz* and Peter Neidlinger* and Marta Ligero and Georg Wölflein and Marko van Treeck and Jakob Nikolas Kather},
       year={2024},
       eprint={2411.13623},
       archivePrefix={arXiv},

@@ -1,7 +1,7 @@
-# COntrastive Biomarker Representation Alignment (COBRA) 
-<p align="center">
-    <img src="assets/cobra.png" alt="failed loading the image" width="300"/>
-</p>
+<h1>
+    <img src="assets/cobra.png" alt="failed loading the image" width="50" style="vertical-align: middle; margin-right: 10px;">
+    COntrastive Biomarker Representation Alignment (COBRA)
+</h1>
 
 [Preprint](https://arxiv.org/abs/2411.13623) | [Download Model](https://huggingface.co/KatherLab/COBRA) 
 
@@ -14,6 +14,10 @@
 >Existing approaches for slide representation learning extend the principles of SSL from patch level learning to entire slides by aligning different augmentations of the slide or by utilizing multimodal data.
 >By integrating tile embeddings from multiple FMs, we propose a new single modality SSL method in feature space that generates useful slide representations.
 >Our contrastive pretraining strategy, called CORBA, employs multiple FMs and an architecture based on Mamba-2. CORBA exceeds performance of state-of-the-art slide encoders on four different public CPTAC cohorts on average by at least $>+4.5\%$ AUC, despite only being pretrained on 3048 WSIs from TCGA. Additionally, COBRA is readily compatible at inference time with previously unseen feature extractors.
+
+<p align="center">
+    <img src="assets/fig1.png" alt="failed loading the image" width="1100"/>
+</p>
 
 ### Installation
 

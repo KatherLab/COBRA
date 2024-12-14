@@ -39,8 +39,41 @@ python -m cobra.inference.extract_feats --feat_dir <tile_emb_dir> --output_dir <
 ```
 
 #### References
+- [CTransPath](https://github.com/Xiyue-Wang/TransPath)
+>Xiyue Wang, Sen Yang, Jun Zhang, Minghui Wang,
+>Jing Zhang, Wei Yang, Junzhou Huang, and Xiao Han.
+>Transformer-based unsupervised contrastive learning for
+>histopathological image classification. Medical Image Anal-
+>ysis, 2022
+- [UNI](https://github.com/mahmoodlab/uni)
+>Richard J Chen, Tong Ding, Ming Y Lu, Drew FK
+>Williamson, Guillaume Jaume, Bowen Chen, Andrew
+>Zhang, Daniel Shao, Andrew H Song, Muhammad Shaban,
+>et al. Towards a general-purpose foundation model for com-
+>putational pathology. Nature Medicine, 2024
+- [Virchow2](https://huggingface.co/paige-ai/Virchow2)
+>Eric Zimmermann, Eugene Vorontsov, Julian Viret, Adam
+>Casson, Michal Zelechowski, George Shaikovski, Neil
+>Tenenholtz, James Hall, David Klimstra, Razik Yousfi,
+>Thomas Fuchs, Nicolo Fusi, Siqi Liu, and Kristen Sever-
+>son. Virchow2: Scaling self-supervised mixed magnification
+>models in pathology, 2024
+- [H-Optimus-0](https://github.com/bioptimus/releases/tree/main/models/h-optimus/v0)
+>Charlie Saillard, Rodolphe Jenatton, Felipe Llinares-López,
+>Zelda Mariet, David Cahané, Eric Durand, and Jean-Philippe
+>Vert. H-optimus-0, 2024
 - [STAMP](https://github.com/KatherLab/STAMP)
+>Omar S. M. El Nahhas, Marko van Treeck, Georg Wölflein,
+>Michaela Unger, Marta Ligero, Tim Lenz, Sophia J. Wagner,
+>Katherine J. Hewitt, Firas Khader, Sebastian Foersch, Daniel
+>Truhn, and Jakob Nikolas Kather. From whole-slide im-
+>age to biomarker prediction: end-to-end weakly supervised
+>deep learning in computational pathology. Nature Protocols,
+>2024
 - [MoCo-v3](https://github.com/facebookresearch/moco-v3)
+>Xinlei Chen*, Saining Xie*, and Kaiming He. An empirical
+>study of training self-supervised vision transformers. arXiv
+>preprint arXiv:2104.02057, 2021
 
 ## Citation
 

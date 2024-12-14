@@ -22,7 +22,7 @@ git clone https://github.com/KatherLab/COBRA.git && cd COBRA
 pip install uv
 uv venv --python=3.11
 source .venv/bin/activate
-uv pip install torch==2.4.1 setuptools packaging wheel numpy>=2.0.0
+uv pip install torch==2.4.1 setuptools packaging wheel numpy==2.0.0
 uv sync --no-build-isolation
 ```
 

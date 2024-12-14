@@ -4,6 +4,7 @@ from cobra.model.cobra import Cobra
 import torch
 import warnings
 import os
+import requests
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
 def get_cobra(download_weights=False,checkpoint_path=None,local_dir="weights"):
@@ -12,8 +13,8 @@ def get_cobra(download_weights=False,checkpoint_path=None,local_dir="weights"):
             os.makedirs(local_dir)
         try:
             checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", local_dir="weights", force_download=True)
-        except Exception as e:
-            if "401 Client Error" in str(e):
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
                 raise PermissionError("You do not have permission to access this model. Please ensure you have accepted the model's terms and conditions on https://huggingface.co/KatherLab/COBRA.")
             else:
                 raise e

@@ -11,13 +11,7 @@ def get_cobra(download_weights=False,checkpoint_path=None,local_dir="weights"):
     if download_weights:
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
-        try:
-            checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", local_dir="weights", force_download=True)
-        except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 401:
-                raise PermissionError("You do not have permission to access this model. Please ensure you have accepted the model's terms and conditions on https://huggingface.co/KatherLab/COBRA.")
-            else:
-                raise e
+        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", local_dir="weights", force_download=True)
         print(f"Saving model to {checkpoint_path}")
     state_dict = torch.load(checkpoint_path, map_location="cpu")
     model = Cobra()

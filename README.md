@@ -21,7 +21,7 @@ To install the necessary dependencies, run the following commands:
 git clone https://github.com/KatherLab/COBRA.git && cd COBRA
 pip install uv
 uv venv --python=3.11
-uv pip install torch==2.4.1 setuptools numpy>=2.0.0
+uv pip install torch>=2.4.1 setuptools numpy>=2.0.0
 uv sync --no-build-isolation
 ```
 

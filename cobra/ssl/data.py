@@ -4,7 +4,9 @@ from torch.utils.data import Dataset
 import h5py
 import os
 from glob import glob
+from tqdm import tqdm
 import pathlib
+from concurrent.futures import ThreadPoolExecutor
 
 
 class FeatDataset(Dataset):
@@ -25,11 +27,20 @@ class FeatDataset(Dataset):
         
         idx1 = np.random.randint(0,len(self.pat_dict[pat]))
         idx2 = np.random.randint(0,len(self.pat_dict[pat]))
-        with h5py.File(self.pat_dict[pat][idx1],'r') as f:
-            feats1 = f["feats"][:]
         
-        with h5py.File(self.pat_dict[pat][idx2],'r') as f:
-            feats2 = f["feats"][:]
+        try:
+            with h5py.File(self.pat_dict[pat][idx1],'r') as f:
+                feats1 = f["feats"][:]
+        except Exception as e:
+            print(f"Error reading {self.pat_dict[pat][idx1]}")
+            raise e
+        
+        try:
+            with h5py.File(self.pat_dict[pat][idx2],'r') as f:
+                feats2 = f["feats"][:]
+        except Exception as e:
+            print(f"Error reading {self.pat_dict[pat][idx2]}")
+            raise e
     
         assert len(feats1.shape)==2, f"{feats1.shape=}!"
         assert len(feats2.shape)==2, f"{feats2.shape=}!"
@@ -63,19 +74,41 @@ class FeatDataset(Dataset):
             x = torch.cat([x,torch.zeros(n,pad_size)],dim=1)
         return x
 
-def get_pat_dict(cfg):
+
+def check_file(f):
+    try:
+        with h5py.File(f,'r') as h5f:
+            if "feats" not in h5f:
+                raise KeyError(f"'feats' not found in {f}")
+            #feats = f["feats"][:]
+    except Exception as e:
+        print(f"Error reading {f}")
+        raise e
+    #assert len(feats.shape)==2, f"{feats.shape=}!"
+
+def get_pat_dict(cfg,num_cores=14):
     
     pat_dict = {}
     print(f'FMs: {cfg["general"]["fms"]}')
-    for c in tqdm(cfg["general"]["feat_cohorts"]):
+    #for c in tqdm(cfg["general"]["feat_cohorts"]):
+    for c in tqdm(os.listdir(os.path.join(cfg["general"]["feat_base_paths"][0],cfg["general"]["fms"][0])),leave=False):
         for fm in tqdm(cfg["general"]["fms"],leave=False):
             for feat_base_path in cfg["general"]["feat_base_paths"]:
-                feat_path = os.path.join(feat_base_path,c,fm)
+                feat_path = os.path.join(feat_base_path,fm,c)
+                feat_path = os.path.join(feat_path, [f for f in os.listdir(feat_path) if "stamp" in f and os.path.isdir(os.path.join(feat_path, f))][0])
                 feat_files = glob(os.path.join(feat_path,"*.h5"))
                 assert len(feat_files)>0, f"couldnt find any feat files in path {feat_path}"
-                for f in feat_files: 
+                def process_file(f):
                     pat_id = pathlib.Path(f).stem[:12]
-                    if pat_id in list(pat_dict.keys()):
+                    check_file(f)
+                    return pat_id, f
+
+                # num_cores = cfg.get("num_cores", None)
+                with ThreadPoolExecutor(max_workers=num_cores) as executor:
+                    results = list(tqdm(executor.map(process_file, feat_files), total=len(feat_files), leave=False))
+
+                for pat_id, f in results:
+                    if pat_id in pat_dict:
                         pat_dict[pat_id].append(f)
                     else:
                         pat_dict[pat_id] = [f]

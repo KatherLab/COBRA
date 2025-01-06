@@ -1,9 +1,13 @@
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from cobra.utils.mamba import Mamba2Enc
+from cobra.utils.mamba2 import Mamba2Enc
 from cobra.utils.abmil import BatchedABMIL
 from einops import rearrange 
+
 
 
 class Embed(nn.Module):
@@ -23,17 +27,19 @@ class Embed(nn.Module):
 
 
 class Cobra(nn.Module):
-    def __init__(self,embed_dim, c_dim, num_heads=8,layer=2,dropout=0.25):
+    def __init__(self,embed_dim, c_dim, num_heads=8,layer=2,dropout=0.25,att_dim=256,d_state=64):
         super().__init__()
         
-        self.embed = nn.ModuleDict({"768":Embed(768,embed_dim),
+        self.embed = nn.ModuleDict({ "384":Embed(384,embed_dim),
+                                      "512":Embed(512,embed_dim),
+                                    #"768":Embed(768,embed_dim),
                                    "1024":Embed(1024,embed_dim),
                                    "1280":Embed(1280,embed_dim),
                                     "1536":Embed(1536,embed_dim)})
         
         self.norm = nn.LayerNorm(embed_dim)
         
-        self.mamba_enc = Mamba2Enc(embed_dim,embed_dim,n_classes=embed_dim,layer=layer,dropout=dropout)
+        self.mamba_enc = Mamba2Enc(embed_dim,embed_dim,n_classes=embed_dim,layer=layer,dropout=dropout,d_state=64)
         self.proj = nn.Sequential(
             nn.LayerNorm(embed_dim),
             nn.Linear(embed_dim,4*embed_dim),
@@ -44,7 +50,8 @@ class Cobra(nn.Module):
         )
    
         self.num_heads = num_heads
-        self.attn = nn.ModuleList([BatchedABMIL(input_dim=int(embed_dim/num_heads),hidden_dim=int(embed_dim/num_heads),dropout=dropout,n_classes=1) for _ in range(self.num_heads)])
+        self.attn = nn.ModuleList([BatchedABMIL(input_dim=int(embed_dim/num_heads),hidden_dim=att_dim,
+                                        dropout=dropout,n_classes=1) for _ in range(self.num_heads)]) #,hidden_dim=int(embed_dim/num_heads)
 
     def forward(self, x, lens=None):
 
@@ -77,11 +84,13 @@ class Cobra(nn.Module):
         return feats
     
 class MoCo(nn.Module): # adapted from https://github.com/facebookresearch/moco-v3
-    def __init__(self,embed_dim, c_dim, num_heads=8, nr_mamba_layers=2, gpu_id=0, T=0.2,dropout=0.25):
+    def __init__(self,embed_dim, c_dim, num_heads=8, nr_mamba_layers=2, gpu_id=0, T=0.2,dropout=0.25,
+                 att_dim=256,d_state=64):
         super().__init__()
 
         self.T = T
-        self.base_enc = Cobra(embed_dim,c_dim,num_heads,layer=nr_mamba_layers,dropout=dropout)
+        self.base_enc = Cobra(embed_dim,c_dim,num_heads,layer=nr_mamba_layers,dropout=dropout,
+                              att_dim=att_dim,d_state=d_state)
         self.momentum_enc = Cobra(embed_dim,c_dim,num_heads,layer=nr_mamba_layers,dropout=None)
         self.predictor = nn.Sequential(
             nn.LayerNorm(c_dim),

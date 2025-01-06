@@ -4,7 +4,9 @@ model:
   dim: 768
   input_dim: 1536
   l_dim: 256
+  att_dim: 256
   dropout: 0.25
+  d_state: 128
   model_name: cobra
 
 ssl:
@@ -15,27 +17,24 @@ ssl:
   warmup_epochs: 50
   weight_decay: 0.1
   momentum: 0.9
-  epochs: 2000
-  workers: 32
+  epochs: 3000
+  workers: 56
   batch_size: 1024
     
 general:
-
-  nr_feats: 1024
+  nr_feats: 768
   fms:
-    - ctranspath
-    - virchow2-class
-    - uni
-    - bioptimus
+    - dinoSSL
+    - mahmood-conch
+    - mahmood-uni
+    - virchow2
+    - h_optimus_0
   feat_base_paths: 
-    - 5x-features
-    - 9x-features
-    - 20x-features
-  feat_cohorts:
-    - tcga_brca
-    - tcga_lung
-    - tcga_crc
-    - tcga_stad
+    - /data/horse/ws/s1787956-TCGA/features/features-1x
+    - /data/horse/ws/s1787956-TCGA/features/features-2x
+    - /data/horse/ws/s1787956-TCGA/features/features-5x
+    - /data/horse/ws/s1787956-TCGA/features/features-10x
+    - /data/horse/ws/s1787956-TCGA/features/features-20x
   paths:
-    out_dir: /path/to/cobra/model/cobra
+    out_dir: /data/cat/ws/s1787956-cobra/outs
   

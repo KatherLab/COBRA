@@ -117,18 +117,18 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "causal-conv1d", specifier = "==1.4.0" },
+    { name = "causal-conv1d", specifier = ">=1.4.0" },
     { name = "einops", specifier = ">=0.8.0" },
     { name = "h5py", specifier = ">=3.12.1" },
     { name = "huggingface-hub", specifier = ">=0.26.5" },
     { name = "jinja2", specifier = ">=3.1.4" },
-    { name = "mamba-ssm", specifier = "==2.2.2" },
+    { name = "mamba-ssm", specifier = ">=2.2.2" },
     { name = "numpy", specifier = ">=2.0.2" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "setuptools", specifier = ">=42" },
     { name = "torch", specifier = "==2.4.1" },
-    { name = "torchvision", specifier = "==0.19.1" },
+    { name = "torchvision", specifier = ">=0.19.1" },
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 

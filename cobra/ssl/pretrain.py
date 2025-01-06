@@ -11,7 +11,6 @@ import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 import torch 
 from tqdm import tqdm
-import torch.nn.functional as F
 from pathlib import Path
 import os
 import builtins
@@ -31,9 +30,9 @@ import math
 from cobra.ssl.model import MoCo
 from cobra.ssl.data import FeatDataset, get_pat_dict
 
-
 def main(args,cfg):
-
+    
+    pat_dict=get_pat_dict(cfg)
     ngpus_per_node = torch.cuda.device_count()
     args.world_size = ngpus_per_node * args.world_size
     mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node, args,cfg))
@@ -58,7 +57,8 @@ def main_worker(gpu, ngpus_per_node, args,cfg):
     model = MoCo(embed_dim=cfg["model"]["dim"], c_dim=cfg["model"]["l_dim"],
                  num_heads=cfg["model"]["nr_heads"],
                  gpu_id=args.gpu,T=cfg["ssl"]["moco_t"],
-                 nr_mamba_layers=cfg["model"]["nr_mamba_layers"],dropout=cfg["model"]["dropout"]) 
+                 nr_mamba_layers=cfg["model"]["nr_mamba_layers"],dropout=cfg["model"]["dropout"],
+                 att_dim=cfg["model"]["att_dim"],d_state=cfg["model"]["d_state"]) 
     
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
 
@@ -167,7 +167,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Cobra-training.')
 
     # Add the command-line argument for the config path
-    parser.add_argument('--config', type=str, default='config.yml', 
+    parser.add_argument('-c','--config', type=str, default='config.yml', 
                         help='Path to the config file')
     parser.add_argument('--world-size', default=1, type=int,
                         help='number of nodes for distributed training')

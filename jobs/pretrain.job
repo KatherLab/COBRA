@@ -15,4 +15,4 @@ module load CUDA
 cd /data/cat/ws/s1787956-cobra/COBRA
 source .venv/bin/activate
 ulimit -n 16384
-python -m cobra.ssl.pretrain --config /data/cat/ws/s1787956-cobra/COBRA/cobra/config/cobra.yml
+python -m cobra.ssl.pretrain --config /data/cat/ws/s1787956-cobra/COBRA/cobra/config/cobra.yml --resume /data/cat/ws/s1787956-cobra/outs/2025-01-08-17:58/checkpoints/cobra-15.pth.tar

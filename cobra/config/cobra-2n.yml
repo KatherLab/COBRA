@@ -19,7 +19,7 @@ ssl:
   momentum: 0.9
   epochs: 3000
   workers: 56
-  batch_size: 1024
+  batch_size: 2048
     
 general:
   nr_feats: 768
@@ -30,11 +30,11 @@ general:
     - virchow2
     - h_optimus_0
   feat_base_paths: 
-    - /data/cat/ws/s1787956-cobra/data/features/features-1x
-    - /data/cat/ws/s1787956-cobra/data/features/features-2x
-    - /data/cat/ws/s1787956-cobra/data/features/features-5x
-    - /data/cat/ws/s1787956-cobra/data/features/features-10x
-    - /data/cat/ws/s1787956-cobra/data/features/features-20x
+    - /data/horse/ws/s1787956-TCGA/features/features-1x
+    - /data/horse/ws/s1787956-TCGA/features/features-2x
+    - /data/horse/ws/s1787956-TCGA/features/features-5x
+    - /data/horse/ws/s1787956-TCGA/features/features-10x
+    - /data/horse/ws/s1787956-TCGA/features/features-20x
   paths:
     out_dir: /data/cat/ws/s1787956-cobra/outs
   

@@ -39,7 +39,7 @@ class Cobra(nn.Module):
         
         self.norm = nn.LayerNorm(embed_dim)
         
-        self.mamba_enc = Mamba2Enc(embed_dim,embed_dim,n_classes=embed_dim,layer=layer,dropout=dropout,d_state=64)
+        self.mamba_enc = Mamba2Enc(embed_dim,embed_dim,n_classes=embed_dim,layer=layer,dropout=dropout,d_state=d_state)
         self.proj = nn.Sequential(
             nn.LayerNorm(embed_dim),
             nn.Linear(embed_dim,4*embed_dim),
@@ -91,7 +91,8 @@ class MoCo(nn.Module): # adapted from https://github.com/facebookresearch/moco-v
         self.T = T
         self.base_enc = Cobra(embed_dim,c_dim,num_heads,layer=nr_mamba_layers,dropout=dropout,
                               att_dim=att_dim,d_state=d_state)
-        self.momentum_enc = Cobra(embed_dim,c_dim,num_heads,layer=nr_mamba_layers,dropout=None)
+        self.momentum_enc = Cobra(embed_dim,c_dim,num_heads,layer=nr_mamba_layers,dropout=None,
+                                  att_dim=att_dim,d_state=d_state)
         self.predictor = nn.Sequential(
             nn.LayerNorm(c_dim),
             nn.Linear(c_dim,2*c_dim),

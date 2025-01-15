@@ -1,0 +1,21 @@
+#!/bin/bash
+
+#SBATCH --nodes=1
+#SBATCH --tasks-per-node=1
+#SBATCH --cpus-per-task=14
+#SBATCH --time=3:00:00
+#SBATCH --mem=100G
+#SBATCH --job-name=feat-ext-COBRAII
+#SBATCH --mail-type=end
+#SBATCH --mail-user=tim.lenz@tu-dresden.de
+#SBATCH --gres=gpu:1
+#SBATCH --output=outs-fe/fe-cobra2-%j.out
+
+module load CUDA
+cd /data/cat/ws/s1787956-cobra/COBRA
+source .venv/bin/activate
+ulimit -n 16384
+
+bash extract_slide_embsII.sh -m /data/cat/ws/s1787956-cobra/outs/2025-01-11-09:57/50580/checkpoints/cobra-2000.pth.tar \
+                             -d /data/cat/ws/s1787956-cobra/outs/2025-01-11-09:57/50580/config.yml \
+                             -j 50580 -c STAD,LUSC,LUAD,BRCA,CRC

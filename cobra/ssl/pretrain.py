@@ -175,7 +175,7 @@ def main_worker(gpu, ngpus_per_node, args, cfg):
         if args.rank == 0:
             # tqdm.write(f"Epoch {e+1}; loss: {t_loss/len(loader):.4f}; lr: {lr:.5f}")
             print(f"Epoch {e+1}; loss: {t_loss/len(loader):.4f}; lr: {lr:.5f}")
-            with open(os.path.join(cfg["general"]["paths"]["out_dir"], "training_log.csv"), "a") as f:
+            with open(os.path.join(cfg["general"]["paths"]["out_dir"], f"training_log_{cfg['general']['job_id']}.csv"), "a") as f:
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 f.write(f"{timestamp},{e+1},{t_loss/len(loader):.4f},{lr:.5f}\n")
             if (e + 1) % 5 == 0:
@@ -260,6 +260,12 @@ if __name__ == "__main__":
         metavar="PATH",
         help="path to latest checkpoint (default: none)",
     )
+    parser.add_argument(
+        "--job_id",
+        default="",
+        type=str,
+        help="Job ID for the training run",
+    )
     args = parser.parse_args()
 
     with open(args.config, "r") as f:
@@ -269,27 +275,30 @@ if __name__ == "__main__":
     template = template_env.from_string(str(cfg_data))
     # Render the template with the values from the config_data
     cfg = yaml.safe_load(template.render(**cfg_data))
-
+    cfg["general"]["job_id"] = args.job_id
     exp_str = datetime.now().strftime("%Y-%m-%d-%H:%M")
-
     cfg["general"]["paths"]["out_dir"] = os.path.join(
-        cfg["general"]["paths"]["out_dir"], exp_str
+        cfg["general"]["paths"]["out_dir"], exp_str, cfg["general"]["job_id"]
     )
     cfg["general"]["paths"]["chkpt_dir"] = os.path.join(
         cfg["general"]["paths"]["out_dir"], "checkpoints"
     )
-
+    
     # for k in cfg.keys():
     for path in cfg["general"]["paths"].values():
         Path(path).mkdir(parents=True, exist_ok=True)
 
-    with open(os.path.join(cfg["general"]["paths"]["out_dir"], "config.yml"), "w") as f:
-        yaml.dump(cfg, f, sort_keys=False, default_flow_style=False)
-
-    
     if 'RANK' in os.environ and 'WORLD_SIZE' in os.environ:
         args.rank = int(os.environ["RANK"])
         args.world_size = int(os.environ['WORLD_SIZE'])
         args.gpu = int(os.environ['LOCAL_RANK'])
+    
+    cfg["general"]["world_size"] = args.world_size
+    
+    with open(os.path.join(cfg["general"]["paths"]["out_dir"], f"config-{args.job_id}.yml"), "w") as f:
+        yaml.dump(cfg, f, sort_keys=False, default_flow_style=False)
+
+    
+    
     #print("=> args", args)
     main(args, cfg)

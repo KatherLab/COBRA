@@ -7,7 +7,7 @@ model:
   att_dim: 256
   dropout: 0.25
   d_state: 128
-  model_name: cobra
+  model_name: cobraII
 
 ssl:
   moco_m: 0.99
@@ -35,6 +35,7 @@ general:
     - /data/cat/ws/s1787956-cobra/data/features/features-5x
     - /data/cat/ws/s1787956-cobra/data/features/features-10x
     - /data/cat/ws/s1787956-cobra/data/features/features-20x
+    - /data/cat/ws/s1787956-cobra/data/features/features-30x
   paths:
     out_dir: /data/cat/ws/s1787956-cobra/outs
   

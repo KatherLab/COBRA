@@ -77,6 +77,5 @@ def main():
     
     get_slide_embs(model, args.output_dir, args.feat_dir,args.h5_name,args.model_name, device)
     
-    
 if __name__ == "__main__":
     main()

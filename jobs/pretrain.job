@@ -29,4 +29,5 @@ srun torchrun                                       \
     --rdzv-endpoint="$MASTER_ADDR":"$MASTER_PORT"   \
     -m cobra.ssl.pretrain                           \
     --config /data/cat/ws/s1787956-cobra/COBRA/cobra/config/cobra.yml \
-    --job_id $SLURM_JOB_ID                                            
+    --job_id $SLURM_JOB_ID        \
+    --resume /data/cat/ws/s1787956-cobra/outs/2025-01-15-08:45/56289/checkpoints/cobraII-1400.pth.tar                                     

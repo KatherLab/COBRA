@@ -29,9 +29,9 @@ IFS=',' read -r -a cohort_array <<< "$cohorts"
 
 for cohort in "${cohort_array[@]}"
 do
-    OUTPUT_DIR="/data/cat/ws/s1787956-cobra/data/cobraII-feats-${job_id}/${cohort}"
-    FEAT_DIR="/data/cat/ws/s1787956-cobra/data/features/features-20x/virchow2/TCGA-${cohort}/virchow2-stamp-maru-21-12-24"
-    SLIDE_TABLE="/data/cat/ws/s1787956-cobra/slide_tables/slide_table_tcga_${cohort,,}.csv"
-
-    python -m cobra.inference.extract_feats_patient -d -f $FEAT_DIR -c $CONFIG_DIR -o $OUTPUT_DIR -w $CHECKPOINT_DIR -m "cobraII-${job_id}" -e "cobraII_feats_${cohort}.h5" -s $SLIDE_TABLE
+    OUTPUT_DIR="/data/cat/ws/s1787956-cobra/data/cobraII-feats-cptac-${job_id}/${cohort}"
+    FEAT_DIR="/data/cat/ws/s1787956-cobra/data/features-cptac/features-20x/virchow2/CPTAC-${cohort}/virchow2-stamp-maru-21-12-24"
+    SLIDE_TABLE="/data/cat/ws/s1787956-cobra/slide_tables/slide_table_cptac_${cohort,,}.csv"
+    
+    python -m cobra.inference.extract_feats_patient -f $FEAT_DIR -o $OUTPUT_DIR -d -c $CONFIG_DIR -w $CHECKPOINT_DIR -m "cobraII-${job_id}" -e "cobraII_feats_${cohort}.h5" -s $SLIDE_TABLE
 done

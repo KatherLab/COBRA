@@ -29,4 +29,4 @@ srun torchrun                                       \
     -m cobra.ssl.pretrain                           \
     --config /data/cat/ws/s1787956-cobra/COBRA/cobra/config/cobra-2n.yml \
     --job_id $SLURM_JOB_ID                                               \
-    
+    --resume /data/cat/ws/s1787956-cobra/outs/2025-01-15-08:38/56288/checkpoints/cobraII-1500.pth.tar

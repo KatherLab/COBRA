@@ -3,9 +3,9 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=14
-#SBATCH --time=3:00:00
+#SBATCH --time=8:00:00
 #SBATCH --mem=100G
-#SBATCH --job-name=feat-ext-COBRAII
+#SBATCH --job-name=cptac-feat-ext-COBRAII
 #SBATCH --mail-type=end
 #SBATCH --mail-user=tim.lenz@tu-dresden.de
 #SBATCH --gres=gpu:1
@@ -16,46 +16,46 @@ cd /data/cat/ws/s1787956-cobra/COBRA
 source .venv/bin/activate
 ulimit -n 16384
 
-cohorts="STAD,LUSC,LUAD,BRCA,CRC"
-
 job_id=59023
 
-bash extract_slide_embsII.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-16-09:34/${job_id}/checkpoints/cobraII-2000.pth.tar" \
+cohorts="LUSC,LUAD,BRCA,COAD" 
+
+bash extract_slide_embs_cptac.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-16-09:34/${job_id}/checkpoints/cobraII-2000.pth.tar" \
                              -d "/data/cat/ws/s1787956-cobra/outs/2025-01-16-09:34/${job_id}/config-${job_id}.yml" \
                              -j $job_id -c $cohorts
 
 job_id=59024
 
-bash extract_slide_embsII.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-16-09:37/${job_id}/checkpoints/cobraII-2000.pth.tar" \
+bash extract_slide_embs_cptac.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-16-09:37/${job_id}/checkpoints/cobraII-2000.pth.tar" \
                              -d "/data/cat/ws/s1787956-cobra/outs/2025-01-16-09:37/${job_id}/config-${job_id}.yml" \
                              -j $job_id -c $cohorts
 
 job_id=55967
 
-bash extract_slide_embsII.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-14-22:19/${job_id}/checkpoints/cobraII-2000.pth.tar" \
+bash extract_slide_embs_cptac.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-14-22:19/${job_id}/checkpoints/cobraII-2000.pth.tar" \
                              -d "/data/cat/ws/s1787956-cobra/outs/2025-01-14-22:19/${job_id}/config-${job_id}.yml" \
                              -j $job_id -c $cohorts
 
 job_id=52820
 
-bash extract_slide_embsII.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-13-13:26/${job_id}/checkpoints/cobraII-2000.pth.tar" \
+bash extract_slide_embs_cptac.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-13-13:26/${job_id}/checkpoints/cobraII-2000.pth.tar" \
                              -d "/data/cat/ws/s1787956-cobra/outs/2025-01-13-13:26/${job_id}/config-${job_id}.yml" \
                              -j $job_id -c $cohorts
 
 job_id=52811
 
-bash extract_slide_embsII.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-13-13:18/${job_id}/checkpoints/cobraII-2000.pth.tar" \
+bash extract_slide_embs_cptac.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-13-13:18/${job_id}/checkpoints/cobraII-2000.pth.tar" \
                              -d "/data/cat/ws/s1787956-cobra/outs/2025-01-13-13:18/${job_id}/config-${job_id}.yml" \
                              -j $job_id -c $cohorts
 
 job_id=50686
 
-bash extract_slide_embsII.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-11-11:37/${job_id}/checkpoints/cobraII-2000.pth.tar" \
+bash extract_slide_embs_cptac.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-11-11:37/${job_id}/checkpoints/cobraII-2000.pth.tar" \
                              -d "/data/cat/ws/s1787956-cobra/outs/2025-01-11-11:37/${job_id}/config-${job_id}.yml" \
                              -j $job_id -c $cohorts
 
 job_id=50580
 
-bash extract_slide_embsII.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-11-09:57/${job_id}/checkpoints/cobraII-2000.pth.tar" \
+bash extract_slide_embs_cptac.sh -m "/data/cat/ws/s1787956-cobra/outs/2025-01-11-09:57/${job_id}/checkpoints/cobraII-2000.pth.tar" \
                              -d "/data/cat/ws/s1787956-cobra/outs/2025-01-11-09:57/${job_id}/config-${job_id}.yml" \
                              -j $job_id -c $cohorts

@@ -4,7 +4,7 @@ model:
   dim: 768
   input_dim: 1536
   l_dim: 256
-  att_dim: 256
+  att_dim: 128
   dropout: 0.25
   d_state: 128
   model_name: cobraII
@@ -16,7 +16,7 @@ ssl:
   warmup_epochs: 50
   weight_decay: 0.1
   momentum: 0.9
-  epochs: 3000
+  epochs: 2000
   workers: 56
   batch_size: 2048
 general:
@@ -28,8 +28,8 @@ general:
   - virchow2
   - h_optimus_0
   feat_base_paths:
-  - /data/horse/ws/s1787956-TCGA/features/features-1x
-  - /data/horse/ws/s1787956-TCGA/features/features-2x
+  # - /data/horse/ws/s1787956-TCGA/features/features-1x
+  # - /data/horse/ws/s1787956-TCGA/features/features-2x
   - /data/horse/ws/s1787956-TCGA/features/features-5x
   - /data/horse/ws/s1787956-TCGA/features/features-10x
   - /data/horse/ws/s1787956-TCGA/features/features-20x

@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=56
 #SBATCH --time=24:00:00
 #SBATCH --mem=500G
-#SBATCH --job-name=4n-COBRAII
+#SBATCH --job-name=4096-COBRAII
 #SBATCH --mail-type=end
 #SBATCH --mail-user=tim.lenz@tu-dresden.de
 #SBATCH --gres=gpu:4
@@ -27,5 +27,5 @@ srun torchrun                                       \
     --rdzv-backend=c10d                             \
     --rdzv-endpoint="$MASTER_ADDR":"$MASTER_PORT"   \
     -m cobra.ssl.pretrain                           \
-    --config /data/cat/ws/s1787956-cobra/COBRA/cobra/config/cobra-4n.yml \
+    --config /data/cat/ws/s1787956-cobra/COBRA/cobra/config/cobra-4096.yml \
     --job_id $SLURM_JOB_ID 

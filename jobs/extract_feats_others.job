@@ -3,9 +3,9 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=1
 #SBATCH --cpus-per-task=14
-#SBATCH --time=8:00:00
+#SBATCH --time=10:00:00
 #SBATCH --mem=100G
-#SBATCH --job-name=cptac-feat-ext-COBRAII
+#SBATCH --job-name=others-feat-ext-COBRAII
 #SBATCH --mail-type=end
 #SBATCH --mail-user=tim.lenz@tu-dresden.de
 #SBATCH --gres=gpu:1
@@ -16,7 +16,9 @@ cd /data/cat/ws/s1787956-cobra/COBRA
 source .venv/bin/activate
 ulimit -n 16384
 
-cohorts="LUSC,LUAD,BRCA,COAD" # Need slide tables for rest
+job_id=59023
+
+cohorts="bern,marra,kiel,dachs" 
 
 magnifications=("1" "2" "20")
 job_ids=("59023" "56288" "56288" "59024" "56289" "56289"  "52820" "52820" "52820")  # "52811" "55967" "50686"
@@ -38,7 +40,7 @@ for mag in "${magnifications[@]}"; do
         job_id=${job_ids[$i]}
         prefix=${prefixes[$i]}
         epoch=${epochs[$i]}
-        bash extract_slide_embs_cptac.sh -m "/data/cat/ws/s1787956-cobra/outs/${prefix}/${job_id}/checkpoints/cobraII-${epoch}.pth.tar" \
+        bash extract_slide_embs_others.sh -m "/data/cat/ws/s1787956-cobra/outs/${prefix}/${job_id}/checkpoints/cobraII-${epoch}.pth.tar" \
                                      -d "/data/cat/ws/s1787956-cobra/outs/${prefix}/${job_id}/config-${job_id}.yml" \
                                      -j $job_id -c $cohorts -r $mag -e $epoch
     done

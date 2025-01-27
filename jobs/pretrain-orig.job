@@ -29,5 +29,5 @@ srun torchrun                                       \
     --rdzv-endpoint="$MASTER_ADDR":"$MASTER_PORT"   \
     -m cobra.ssl.pretrain                           \
     --config /data/cat/ws/s1787956-cobra/COBRA/cobra/config/cobra-orig.yml \
-    --job_id $SLURM_JOB_ID                          \
+    --job_id $SLURM_JOB_ID                          
     

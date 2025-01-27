@@ -27,6 +27,12 @@ def get_slide_embs(model,output_dir,feat_dir,output_file="cobra-feats.h5",model_
     patient_groups = slide_table.groupby('PATIENT')
     slide_dict = {}
     
+    output_file = os.path.join(output_dir, output_file)
+
+    if os.path.exists(output_file):
+        tqdm.write(f"Output file {output_file} already exists, skipping")
+        return
+
     #tile_emb_paths = glob(f"{feat_dir}/*.h5")
     for patient_id, group in tqdm(patient_groups,leave=False):
         all_feats_list = []
@@ -50,16 +56,19 @@ def get_slide_embs(model,output_dir,feat_dir,output_file="cobra-feats.h5",model_
             all_feats_cat = torch.cat(all_feats_list, dim=0).unsqueeze(0)
         
         
-        #tile_embs = get_tile_embs(tile_emb_path,device)
-        #slide_name = Path(tile_emb_path).stem
-        with torch.inference_mode():
-            assert all_feats_cat.ndim == 3, f"Expected 3D tensor, got {all_feats_cat.ndim}"
-            slide_feats = model(all_feats_cat)
-            slide_dict[patient_id] = {
-                'feats': slide_feats.detach().squeeze().cpu().numpy(),
-                'extractor': f"{model_name}-V2"
-            }
-    output_file = os.path.join(output_dir, output_file)
+            #tile_embs = get_tile_embs(tile_emb_path,device)
+            #slide_name = Path(tile_emb_path).stem
+            with torch.inference_mode():
+                assert all_feats_cat.ndim == 3, f"Expected 3D tensor, got {all_feats_cat.ndim}"
+                slide_feats = model(all_feats_cat)
+                slide_dict[patient_id] = {
+                    'feats': slide_feats.detach().squeeze().cpu().numpy(),
+                    'extractor': f"{model_name}-V2"
+                }
+        else:
+            tqdm.write(f"No features found for patient {patient_id}, skipping")
+        
+    
     os.makedirs(os.path.dirname(output_file), exist_ok=True)
     with h5py.File(output_file, 'w') as f:
         for patient_id, data in slide_dict.items():

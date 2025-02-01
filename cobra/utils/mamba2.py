@@ -2,12 +2,14 @@
 Adapted from: https://github.com/isyangshu/MambaMIL/blob/main/models/MambaMIL.py
 Shu Yang, Yihui Wang, and Hao Chen. MambaMIL: En-
 hancing Long Sequence Modeling with Sequence Reorder-
-ing in Computational Pathology . In proceedings of Medi-
+ing in Computational Pathology. In proceedings of Medi-
 cal Image Computing and Computer Assisted Intervention –
 MICCAI 2024. Springer Nature Switzerland, 2024
 """
 import torch
 import torch.nn as nn
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
 from mamba_ssm import Mamba2
 
 def initialize_weights(module):
@@ -22,7 +24,7 @@ def initialize_weights(module):
 
 
 class Mamba2Enc(nn.Module):
-    def __init__(self, in_dim,dim, n_classes, dropout=0.25, act="gelu", layer=2, rate=10):
+    def __init__(self, in_dim,dim, n_classes, dropout=0.25, act="gelu", layer=2, rate=10, d_state=64):
         super(Mamba2Enc, self).__init__()
         self._fc1 = [nn.Linear(in_dim, dim)]
         if act.lower() == 'relu':
@@ -42,7 +44,7 @@ class Mamba2Enc(nn.Module):
                     nn.LayerNorm(dim),
                     Mamba2(
                         d_model=dim,
-                        d_state=128,  
+                        d_state=d_state,  
                         d_conv=4,    
                         expand=2,
                     ),

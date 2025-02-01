@@ -2,14 +2,10 @@ model:
   nr_heads: 8
   nr_mamba_layers: 2
   dim: 768
-  input_dims: 
-    - 512
-    - 1024
-    - 1280
-    - 1536
+  input_dim: 1536
   l_dim: 256
-  att_dim: 96
-  dropout: 0.2
+  att_dim: 256
+  dropout: 0.25
   d_state: 128
   model_name: cobraII
 
@@ -21,25 +17,24 @@ ssl:
   warmup_epochs: 50
   weight_decay: 0.1
   momentum: 0.9
-  epochs: 2000
+  epochs: 3000
   workers: 56
   batch_size: 1024
     
 general:
   nr_feats: 768
   fms:
-    #- dinoSSL
+    - dinoSSL
     - mahmood-conch
     - mahmood-uni
     - virchow2
     - h_optimus_0
   feat_base_paths: 
-    # - /data/cat/ws/s1787956-cobra/data/features/features-1x
-    # - /data/cat/ws/s1787956-cobra/data/features/features-2x
+    - /data/cat/ws/s1787956-cobra/data/features/features-1x
+    - /data/cat/ws/s1787956-cobra/data/features/features-2x
     - /data/cat/ws/s1787956-cobra/data/features/features-5x
     - /data/cat/ws/s1787956-cobra/data/features/features-10x
     - /data/cat/ws/s1787956-cobra/data/features/features-20x
-    - /data/cat/ws/s1787956-cobra/data/features/features-30x
   paths:
     out_dir: /data/cat/ws/s1787956-cobra/outs
   

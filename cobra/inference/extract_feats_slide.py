@@ -61,17 +61,27 @@ def main():
     elif args.checkpoint_path is not None and args.config is not None:
         with open(args.config, "r") as f:
             cfg_data = yaml.safe_load(f)
+        except FileNotFoundError:
+            with open(os.path.join(os.path.dirname(args.config),f"{os.path.basename(args.config).split('-')[0]}.yml"), "r") as f:
+                cfg_data = yaml.safe_load(f)
         template_env = Environment(loader=FileSystemLoader(searchpath="./"))
         template = template_env.from_string(str(cfg_data))
         cfg = yaml.safe_load(template.render(**cfg_data))
         model = Cobra(embed_dim=cfg["model"]['dim'], layers=cfg["model"]['nr_mamba_layers'], 
-                      dropout=cfg["model"]['dropout'], num_heads=cfg["model"]['nr_heads'],
+                      dropout=cfg["model"]['dropout'],
+                      input_dims=cfg["model"].get("input_dims",[384,512,1024,1280,1536]),
+                      num_heads=cfg["model"]['nr_heads'],
                       att_dim=cfg["model"]['att_dim'],d_state=cfg["model"]['d_state'])
-        chkpt = torch.load(args.checkpoint_path, map_location=device)
+        try:
+            chkpt = torch.load(args.checkpoint_path, map_location=device)
+        except FileNotFoundError:
+            chkpt = torch.load(args.checkpoint_path.replace("II",""), map_location=device)
         if "state_dict" in list(chkpt.keys()):
             chkpt = chkpt["state_dict"]
-        momentum_enc = {k.split("momentum_enc.")[-1]:v for k,v in chkpt.items() if "momentum_enc" in k and "momentum_enc.proj" not in k}
-        model.load_state_dict(momentum_enc)
+            cobra_weights = {k.split("momentum_enc.")[-1]:v for k,v in chkpt.items() if "momentum_enc" in k and "momentum_enc.proj" not in k}
+        else:
+            cobra_weights = chkpt
+        model.load_state_dict(cobra_weights)
     model = model.to(device)
     model.eval()
     

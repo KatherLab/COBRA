@@ -69,6 +69,7 @@ def main_worker(gpu, ngpus_per_node, args, cfg):
     model = MoCo(
         embed_dim=cfg["model"]["dim"],
         c_dim=cfg["model"]["l_dim"],
+        input_dims = cfg["model"].get("input_dims",[384,512,1024,1280,1536]),
         num_heads=cfg["model"]["nr_heads"],
         gpu_id=args.gpu,
         T=cfg["ssl"]["moco_t"],
@@ -178,7 +179,7 @@ def main_worker(gpu, ngpus_per_node, args, cfg):
             with open(os.path.join(cfg["general"]["paths"]["out_dir"], f"training_log_{cfg['general']['job_id']}.csv"), "a") as f:
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 f.write(f"{timestamp},{e+1},{t_loss/len(loader):.4f},{lr:.5f}\n")
-            if (e + 1) % 5 == 0:
+            if (e + 1) % 50 == 0:
                 state = {
                     "epoch": e + 1,
                     "state_dict": model.state_dict(),

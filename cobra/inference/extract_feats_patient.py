@@ -13,15 +13,8 @@ from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 import pandas as pd
 
-# def get_tile_embs(h5_path,device):
     
-#     with h5py.File(h5_path, 'r') as f:
-#         feats = f['feats'][:]
-    
-#     feats = torch.tensor(feats).to(torch.float32).to(device)
-#     return feats.unsqueeze(0)
-    
-def get_slide_embs(model,output_dir,feat_dir,output_file="cobra-feats.h5",model_name="COBRAII",slide_table_path=None,device="cuda"):
+def get_pat_embs(model,output_dir,feat_dir,output_file="cobra-feats.h5",model_name="COBRAII",slide_table_path=None,device="cuda"):
     
     slide_table = pd.read_csv(slide_table_path)
     patient_groups = slide_table.groupby('PATIENT')
@@ -103,7 +96,9 @@ def main():
         template = template_env.from_string(str(cfg_data))
         cfg = yaml.safe_load(template.render(**cfg_data))
         model = Cobra(embed_dim=cfg["model"]['dim'], layers=cfg["model"]['nr_mamba_layers'], 
-                      dropout=cfg["model"]['dropout'], num_heads=cfg["model"]['nr_heads'],
+                      dropout=cfg["model"]['dropout'],
+                      input_dims=cfg["model"].get("input_dims",[384,512,1024,1280,1536]),
+                      num_heads=cfg["model"]['nr_heads'],
                       att_dim=cfg["model"]['att_dim'],d_state=cfg["model"]['d_state'])
         try:
             chkpt = torch.load(args.checkpoint_path, map_location=device)
@@ -111,12 +106,14 @@ def main():
             chkpt = torch.load(args.checkpoint_path.replace("II",""), map_location=device)
         if "state_dict" in list(chkpt.keys()):
             chkpt = chkpt["state_dict"]
-        momentum_enc = {k.split("momentum_enc.")[-1]:v for k,v in chkpt.items() if "momentum_enc" in k and "momentum_enc.proj" not in k}
-        model.load_state_dict(momentum_enc)
+            cobra_weights = {k.split("momentum_enc.")[-1]:v for k,v in chkpt.items() if "momentum_enc" in k and "momentum_enc.proj" not in k}
+        else:
+            cobra_weights = chkpt
+        model.load_state_dict(cobra_weights)
     model = model.to(device)
     model.eval()
     
-    get_slide_embs(model, args.output_dir, args.feat_dir,args.h5_name,args.model_name, args.slide_table, device)
+    get_pat_embs(model, args.output_dir, args.feat_dir,args.h5_name,args.model_name, args.slide_table, device)
     
     
 if __name__ == "__main__":

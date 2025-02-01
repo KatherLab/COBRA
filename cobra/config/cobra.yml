@@ -2,10 +2,14 @@ model:
   nr_heads: 8
   nr_mamba_layers: 2
   dim: 768
-  input_dim: 1536
+  input_dims: 
+    - 512
+    - 1024
+    - 1280
+    - 1536
   l_dim: 256
-  att_dim: 256
-  dropout: 0.25
+  att_dim: 96
+  dropout: 0.2
   d_state: 128
   model_name: cobraII
 
@@ -24,7 +28,7 @@ ssl:
 general:
   nr_feats: 768
   fms:
-    - dinoSSL
+    #- dinoSSL
     - mahmood-conch
     - mahmood-uni
     - virchow2

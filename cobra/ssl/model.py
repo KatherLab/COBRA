@@ -27,15 +27,17 @@ class Embed(nn.Module):
 
 
 class Cobra(nn.Module):
-    def __init__(self,embed_dim, c_dim, num_heads=8,layer=2,dropout=0.25,att_dim=256,d_state=64):
+    def __init__(self,embed_dim, c_dim, input_dims=[384,512,1024,1280,1536], num_heads=8,layer=2,dropout=0.25,att_dim=256,d_state=64):
         super().__init__()
         
-        self.embed = nn.ModuleDict({ "384":Embed(384,embed_dim),
-                                      "512":Embed(512,embed_dim),
-                                    #"768":Embed(768,embed_dim),
-                                   "1024":Embed(1024,embed_dim),
-                                   "1280":Embed(1280,embed_dim),
-                                    "1536":Embed(1536,embed_dim)})
+        # self.embed = nn.ModuleDict({ "384":Embed(384,embed_dim),
+        #                               "512":Embed(512,embed_dim),
+        #                             #"768":Embed(768,embed_dim),
+        #                            "1024":Embed(1024,embed_dim),
+        #                            "1280":Embed(1280,embed_dim),
+        #                             "1536":Embed(1536,embed_dim)})
+
+        self.embed = nn.ModuleDict({str(d):Embed(d,embed_dim) for d in input_dims})
         
         self.norm = nn.LayerNorm(embed_dim)
         
@@ -84,14 +86,14 @@ class Cobra(nn.Module):
         return feats
     
 class MoCo(nn.Module): # adapted from https://github.com/facebookresearch/moco-v3
-    def __init__(self,embed_dim, c_dim, num_heads=8, nr_mamba_layers=2, gpu_id=0, T=0.2,dropout=0.25,
+    def __init__(self,embed_dim, c_dim, input_dims=[384,512,1024,1280,1536], num_heads=8, nr_mamba_layers=2, gpu_id=0, T=0.2,dropout=0.25,
                  att_dim=256,d_state=64):
         super().__init__()
 
         self.T = T
-        self.base_enc = Cobra(embed_dim,c_dim,num_heads,layer=nr_mamba_layers,dropout=dropout,
+        self.base_enc = Cobra(embed_dim,c_dim,input_dims,num_heads,layer=nr_mamba_layers,dropout=dropout,
                               att_dim=att_dim,d_state=d_state)
-        self.momentum_enc = Cobra(embed_dim,c_dim,num_heads,layer=nr_mamba_layers,dropout=None,
+        self.momentum_enc = Cobra(embed_dim,c_dim,input_dims,num_heads,layer=nr_mamba_layers,dropout=None,
                                   att_dim=att_dim,d_state=d_state)
         self.predictor = nn.Sequential(
             nn.LayerNorm(c_dim),

@@ -1,6 +1,6 @@
 model:
-  nr_heads: 8
-  nr_mamba_layers: 2
+  nr_heads: 4
+  nr_mamba_layers: 1
   dim: 768
   input_dims: 
     - 512
@@ -8,7 +8,7 @@ model:
     - 1280
     - 1536
   l_dim: 256
-  att_dim: 96
+  att_dim: 256
   dropout: 0.2
   d_state: 128
   model_name: cobraII

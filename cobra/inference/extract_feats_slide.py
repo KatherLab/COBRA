@@ -59,8 +59,9 @@ def main():
     if args.download_model:
         model = get_cobra(download_weights=args.download_model, checkpoint_path=args.checkpoint_path)
     elif args.checkpoint_path is not None and args.config is not None:
-        with open(args.config, "r") as f:
-            cfg_data = yaml.safe_load(f)
+        try:
+            with open(args.config, "r") as f:
+                cfg_data = yaml.safe_load(f)
         except FileNotFoundError:
             with open(os.path.join(os.path.dirname(args.config),f"{os.path.basename(args.config).split('-')[0]}.yml"), "r") as f:
                 cfg_data = yaml.safe_load(f)

@@ -1,17 +1,17 @@
 model:
-  nr_heads: 4
-  nr_mamba_layers: 1
+  nr_heads: 8
+  nr_mamba_layers: 2
   dim: 768
-  input_dims: 
-    - 512
-    - 1024
-    - 1280
-    - 1536
+  input_dims:
+  - 768
+  - 1024
+  - 1280
+  - 1536
   l_dim: 256
-  att_dim: 256
-  dropout: 0.2
+  att_dim: 96
+  dropout: 0.25
   d_state: 128
-  model_name: cobraII
+  model_name: cobra
 
 ssl:
   moco_m: 0.99
@@ -22,24 +22,26 @@ ssl:
   weight_decay: 0.1
   momentum: 0.9
   epochs: 2000
-  workers: 56
+  workers: 32
   batch_size: 1024
     
 general:
-  nr_feats: 768
+
+  nr_feats: 1024
   fms:
-    #- dinoSSL
-    - mahmood-conch
-    - mahmood-uni
-    - virchow2
-    - h_optimus_0
+    - ctranspath
+    - uni
+    - virchow2-class
+    - bioptimus
   feat_base_paths: 
-    # - /data/cat/ws/s1787956-cobra/data/features/features-1x
-    # - /data/cat/ws/s1787956-cobra/data/features/features-2x
-    - /data/cat/ws/s1787956-cobra/data/features/features-5x
-    - /data/cat/ws/s1787956-cobra/data/features/features-10x
-    - /data/cat/ws/s1787956-cobra/data/features/features-20x
-    - /data/cat/ws/s1787956-cobra/data/features/features-30x
+    - 5x-features
+    - 9x-features
+    - 20x-features
+  feat_cohorts:
+    - tcga_brca
+    - tcga_lung
+    - tcga_crc
+    - tcga_stad
   paths:
-    out_dir: /data/cat/ws/s1787956-cobra/outs
+    out_dir: /path/to/cobra/model/cobra
   

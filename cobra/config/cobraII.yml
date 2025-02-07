@@ -29,14 +29,12 @@ general:
   - mahmood-conch
   - mahmood-uni
   - virchow2
-  - h_optimus_0
+  - bioptimus
   feat_base_paths:
-  - /data/cat/ws/s1787956-cobra/data/features/features-5x
-  - /data/cat/ws/s1787956-cobra/data/features/features-10x
-  - /data/cat/ws/s1787956-cobra/data/features/features-20x
-  - /data/cat/ws/s1787956-cobra/data/features/features-30x
+  - tcga-5x
+  - tcga-10x
+  - tcga-20x
+  - tcga-30x
   paths:
-    out_dir: /data/cat/ws/s1787956-cobra/outs/2025-02-03-10:16/82341
-    chkpt_dir: /data/cat/ws/s1787956-cobra/outs/2025-02-03-10:16/82341/checkpoints
-  job_id: '82341'
-  world_size: 4
+    out_dir: /path/to/cobra/model/cobraII
+

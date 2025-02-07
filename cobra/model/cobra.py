@@ -25,7 +25,7 @@ class Embed(nn.Module):
         return self.head(x) 
 
 class Cobra(nn.Module):
-    def __init__(self,embed_dim,input_dims=[384,512,1024,1280,1536], num_heads=8,layers=2,dropout=0.25,att_dim=256,d_state=64):
+    def __init__(self,embed_dim=768,input_dims=[384,512,1024,1280,1536], num_heads=8,layers=2,dropout=0.25,att_dim=96,d_state=64):
         super().__init__()
         
         self.embed = nn.ModuleDict({str(d):Embed(d,embed_dim) for d in input_dims})
@@ -36,7 +36,7 @@ class Cobra(nn.Module):
    
         self.num_heads = num_heads
         self.attn = nn.ModuleList([BatchedABMIL(input_dim=int(embed_dim/num_heads),hidden_dim=att_dim,
-                                        dropout=dropout,n_classes=1) for _ in range(self.num_heads)]) #,hidden_dim=int(embed_dim/num_heads)
+                                        dropout=dropout,n_classes=1) for _ in range(self.num_heads)]) 
         
     def forward(self, x, multi_fm_mode=False, fm_idx=None, get_attention=False):
         if multi_fm_mode:

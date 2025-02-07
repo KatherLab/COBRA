@@ -32,9 +32,14 @@ To deploy the COBRA model, follow these steps:
 
 1. **Prepare your data**: extract tile embeddings with one or more patch encoders of your preference using [STAMP](https://github.com/KatherLab/STAMP).
 2. **Request Access on [Huggingface](https://huggingface.co/KatherLab/COBRA)**.
-3. **Deploy COBRA**: extract slide level embeddings using COBRA
+3. **Deploy COBRA**: 
+- extract slide level embeddings using COBRAI/II
 ```bash 
-python -m cobra.inference.extract_feats --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir> 
+python -m cobra.inference.extract_feats_slide --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir> (--checkpoint_path <checkpoint_path> --config <path_to_config> | -d)  
+```
+- extract patient level embeddings using COBRAI/II
+```bash 
+python -m cobra.inference.extract_feats_patient --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir>  --slide_table <slide_table_path>  (--checkpoint_path <checkpoint_path> --config <path_to_config> | -d) 
 ```
 
 #### References
@@ -61,6 +66,8 @@ python -m cobra.inference.extract_feats --feat_dir <tile_emb_dir> --output_dir <
 >Charlie Saillard, Rodolphe Jenatton, Felipe Llinares-López,
 >Zelda Mariet, David Cahané, Eric Durand, and Jean-Philippe
 >Vert. H-optimus-0, 2024
+- [CONCH](https://github.com/mahmoodlab/CONCH)
+>Lu, Ming Y. and Chen, Bowen and Zhang, Andrew and Williamson, Drew F. K. and Chen, Richard J. and Ding, Tong and Le, Long Phi and Chuang, Yung-Sung and Mahmood, Faisal. A visual-language foundation model for computational pathology. Nature Medicine, (2024)
 - [STAMP](https://github.com/KatherLab/STAMP)
 >Omar S. M. El Nahhas, Marko van Treeck, Georg Wölflein,
 >Michaela Unger, Marta Ligero, Tim Lenz, Sophia J. Wagner,

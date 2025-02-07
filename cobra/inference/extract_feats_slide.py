@@ -45,7 +45,7 @@ def get_slide_embs(model,output_dir,feat_dir,output_file="cobra-feats.h5",model_
 
 def main():
     parser = argparse.ArgumentParser(description="Extract slide embeddings using COBRA model")
-    parser.add_argument('-d','--download_model', action='store_false', help='Flag to download model weights')
+    parser.add_argument('-d','--download_model', action='store_true', help='Flag to download model weights')
     parser.add_argument('-w','--checkpoint_path', type=str, default=None, help='Path to model checkpoint')
     parser.add_argument('-c','--config', type=str, default=None, help='Path to model config')
     parser.add_argument('-o','--output_dir', type=str, required=True, help='Directory to save extracted features')
@@ -83,6 +83,8 @@ def main():
         else:
             cobra_weights = chkpt
         model.load_state_dict(cobra_weights)
+    else:
+        raise ValueError("Please provide either a checkpoint path or a set the download_model flag")
     model = model.to(device)
     model.eval()
     

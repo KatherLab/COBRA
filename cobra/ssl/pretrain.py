@@ -34,17 +34,13 @@ from cobra.ssl.data import FeatDataset, get_pat_dict
 
 
 def main(args, cfg):
-    # pat_dict=get_pat_dict(cfg)
+
     ngpus_per_node = torch.cuda.device_count()
-    #args.world_size = ngpus_per_node * args.world_size
-    #mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node, args, cfg))
-    #local_rank = int(os.environ["LOCAL_RANK"])
+
     main_worker(args.gpu, ngpus_per_node, args, cfg)
 
 def main_worker(gpu, ngpus_per_node, args, cfg):
-    #args.gpu = gpu
-    #args.rank = gpu
-    #print(f"{args.gpu=}")
+
     if args.rank != 0:
 
         def print_pass(*args):
@@ -62,14 +58,14 @@ def main_worker(gpu, ngpus_per_node, args, cfg):
         world_size=args.world_size,
         rank=args.rank,
     )
-    # torch.distributed.barrier()
+
 
     print("=> creating model...")
 
     model = MoCo(
         embed_dim=cfg["model"]["dim"],
         c_dim=cfg["model"]["l_dim"],
-        input_dims = cfg["model"].get("input_dims",[384,512,1024,1280,1536]),
+        input_dims = cfg["model"].get("input_dims",[512,1024,1280,1536]),
         num_heads=cfg["model"]["nr_heads"],
         gpu_id=args.gpu,
         T=cfg["ssl"]["moco_t"],
@@ -174,7 +170,6 @@ def main_worker(gpu, ngpus_per_node, args, cfg):
             scaler.update()
 
         if args.rank == 0:
-            # tqdm.write(f"Epoch {e+1}; loss: {t_loss/len(loader):.4f}; lr: {lr:.5f}")
             print(f"Epoch {e+1}; loss: {t_loss/len(loader):.4f}; lr: {lr:.5f}")
             with open(os.path.join(cfg["general"]["paths"]["out_dir"], f"training_log_{cfg['general']['job_id']}.csv"), "a") as f:
                 timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -299,7 +294,4 @@ if __name__ == "__main__":
     with open(os.path.join(cfg["general"]["paths"]["out_dir"], f"config-{args.job_id}.yml"), "w") as f:
         yaml.dump(cfg, f, sort_keys=False, default_flow_style=False)
 
-    
-    
-    #print("=> args", args)
     main(args, cfg)

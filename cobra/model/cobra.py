@@ -25,21 +25,18 @@ class Embed(nn.Module):
         return self.head(x) 
 
 class Cobra(nn.Module):
-    def __init__(self,embed_dim=768, mamba_layers=2,dropout=0.25,num_heads=8):
+    def __init__(self,embed_dim=768,input_dims=[384,512,1024,1280,1536], num_heads=8,layers=2,dropout=0.25,att_dim=96,d_state=64):
         super().__init__()
         
-        self.embed = nn.ModuleDict({"768":Embed(768,embed_dim),
-                                   "1024":Embed(1024,embed_dim),
-                                   "1280":Embed(1280,embed_dim),
-                                    "1536":Embed(1536,embed_dim),})
+        self.embed = nn.ModuleDict({str(d):Embed(d,embed_dim) for d in input_dims})
         
         self.norm = nn.LayerNorm(embed_dim)
         
-        self.mamba_enc = Mamba2Enc(embed_dim,embed_dim,n_classes=embed_dim,layer=mamba_layers,dropout=dropout)
-        
+        self.mamba_enc = Mamba2Enc(embed_dim,embed_dim,n_classes=embed_dim,layer=layers,dropout=dropout,d_state=d_state)
+   
         self.num_heads = num_heads
-        self.attn = nn.ModuleList([BatchedABMIL(input_dim=int(embed_dim/num_heads),hidden_dim=int(embed_dim/num_heads),
-                                                dropout=dropout,n_classes=1) for _ in range(self.num_heads)])
+        self.attn = nn.ModuleList([BatchedABMIL(input_dim=int(embed_dim/num_heads),hidden_dim=att_dim,
+                                        dropout=dropout,n_classes=1) for _ in range(self.num_heads)]) 
         
     def forward(self, x, multi_fm_mode=False, fm_idx=None, get_attention=False):
         if multi_fm_mode:

@@ -14,7 +14,7 @@ def get_cobra(download_weights=False,checkpoint_path=None,local_dir="weights"):
         checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", local_dir="weights", force_download=True)
         print(f"Saving model to {checkpoint_path}")
     state_dict = torch.load(checkpoint_path, map_location="cpu")
-    model = Cobra()
+    model = Cobra(input_dims=[768,1024,1280,1536],)
     model.load_state_dict(state_dict)
     print("COBRA model loaded successfully")
     return model

@@ -2,9 +2,15 @@ model:
   nr_heads: 8
   nr_mamba_layers: 2
   dim: 768
-  input_dim: 1536
+  input_dims:
+  - 768
+  - 1024
+  - 1280
+  - 1536
   l_dim: 256
+  att_dim: 96
   dropout: 0.25
+  d_state: 128
   model_name: cobra
 
 ssl:
@@ -24,8 +30,8 @@ general:
   nr_feats: 1024
   fms:
     - ctranspath
-    - virchow2-class
     - uni
+    - virchow2-class
     - bioptimus
   feat_base_paths: 
     - 5x-features

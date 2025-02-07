@@ -4,10 +4,10 @@ model:
   dim: 768
   input_dim: 1536
   l_dim: 256
-  att_dim: 256
+  att_dim: 96
   dropout: 0.25
   d_state: 128
-  model_name: cobraII
+  model_name: cobra
 
 ssl:
   moco_m: 0.99

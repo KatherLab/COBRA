@@ -3,7 +3,7 @@
     COntrastive Biomarker Representation Alignment (COBRA)
 </h1>
 
-[Preprint](https://arxiv.org/abs/2411.13623) | [Download Model](https://huggingface.co/KatherLab/COBRA) | [Cite](#citation)
+[Preprint](https://arxiv.org/abs/2411.13623) | [Download Models](https://huggingface.co/KatherLab/COBRA) | [Cite](#citation)
 
 ### Abstract
 
@@ -13,6 +13,8 @@
     <img src="assets/fig1.png" alt="failed loading the image" width="1100"/>
 </p>
 
+### News
+- [Feb 7th 2025]: [COBRA II](https://huggingface.co/KatherLab/COBRA) trained on all TCGA cohorts, is now live and ready to use!!
 ### Installation
 
 To install the necessary dependencies, run the following commands:
@@ -31,13 +33,26 @@ uv sync --no-build-isolation
 To deploy the COBRA model, follow these steps:
 
 1. **Prepare your data**: extract tile embeddings with one or more patch encoders of your preference using [STAMP](https://github.com/KatherLab/STAMP).
+    - COBRA I:
+        - supported tissue types: LUAD, LUSC, STAD, CRC, BRCA
+        - supported patch encoders to generate weighting:
+            - CTransPath, UNI, Virchow2, H_optimus_0
+        - supported patch encoders for patch feature aggregation:
+            - all existing patch encoders compatible with patch size 224x224 px
+    - COBRA II:
+        - supported tissue types: all cohorts included in TCGA
+        - supported patch encoders to generate COBRAII weighting:
+            - CONCH, UNI, Virchow2, H_optimus_0
+        - supported patch encoders for patch feature aggregation with COBRAII:
+            - all existing patch encoders compatible with patch size 224x224 px
+    
 2. **Request Access on [Huggingface](https://huggingface.co/KatherLab/COBRA)**.
 3. **Deploy COBRA**: 
-- extract slide level embeddings using COBRAI/II
+- extract slide level embeddings using COBRA I/II
 ```bash 
 python -m cobra.inference.extract_feats_slide --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir> (--checkpoint_path <checkpoint_path> --config <path_to_config> | -d)  
 ```
-- extract patient level embeddings using COBRAI/II
+- extract patient level embeddings using COBRA I/II
 ```bash 
 python -m cobra.inference.extract_feats_patient --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir>  --slide_table <slide_table_path>  (--checkpoint_path <checkpoint_path> --config <path_to_config> | -d) 
 ```

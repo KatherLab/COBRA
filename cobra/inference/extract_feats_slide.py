@@ -5,7 +5,7 @@ from tqdm import tqdm
 from glob import glob
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
-from cobra.utils.load_cobra import get_cobra
+from cobra.utils.load_cobra import get_cobra, get_cobraII
 from cobra.model.cobra import Cobra
 import argparse
 import yaml
@@ -52,12 +52,16 @@ def main():
     parser.add_argument('-f','--feat_dir', type=str, required=True, help='Directory containing tile feature files')
     parser.add_argument('-m','--model_name', type=str, required=False,default="COBRAII", help='model_name')
     parser.add_argument('-e','--h5_name', type=str, required=False,default="cobra_feats.h5", help='File name')
-    
+    parser.add_argument('-u','--use_cobraI', action='store_true', help='wheter to use cobra I or II')
+
     args = parser.parse_args()
     print(f"Arguments: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if args.download_model:
-        model = get_cobra(download_weights=args.download_model, checkpoint_path=args.checkpoint_path)
+        if args.use_cobraI:
+            model = get_cobra(download_weights=args.download_model, checkpoint_path=args.checkpoint_path)
+        else:
+            model = get_cobraII(download_weights=args.download_model, checkpoint_path=args.checkpoint_path)
     elif args.checkpoint_path is not None and args.config is not None:
         try:
             with open(args.config, "r") as f:
@@ -70,7 +74,7 @@ def main():
         cfg = yaml.safe_load(template.render(**cfg_data))
         model = Cobra(embed_dim=cfg["model"]['dim'], layers=cfg["model"]['nr_mamba_layers'], 
                       dropout=cfg["model"]['dropout'],
-                      input_dims=cfg["model"].get("input_dims",[384,512,1024,1280,1536]),
+                      input_dims=cfg["model"].get("input_dims",[768,1024,1280,1536]),
                       num_heads=cfg["model"]['nr_heads'],
                       att_dim=cfg["model"]['att_dim'],d_state=cfg["model"]['d_state'])
         try:

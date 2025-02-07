@@ -25,7 +25,7 @@ class Embed(nn.Module):
         return self.head(x) 
 
 class Cobra(nn.Module):
-    def __init__(self,embed_dim=768,input_dims=[384,512,1024,1280,1536], num_heads=8,layers=2,dropout=0.25,att_dim=96,d_state=64):
+    def __init__(self,embed_dim=768,input_dims=[384,512,1024,1280,1536], num_heads=8,layers=2,dropout=0.25,att_dim=96,d_state=128):
         super().__init__()
         
         self.embed = nn.ModuleDict({str(d):Embed(d,embed_dim) for d in input_dims})

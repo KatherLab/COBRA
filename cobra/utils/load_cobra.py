@@ -11,7 +11,7 @@ def get_cobra(download_weights=False,checkpoint_path=None,local_dir="weights"):
     if download_weights:
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
-        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", local_dir="weights", force_download=True)
+        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", local_dir=local_dir, force_download=True)
         print(f"Saving model to {checkpoint_path}")
     state_dict = torch.load(checkpoint_path, map_location="cpu")
     model = Cobra(input_dims=[768,1024,1280,1536],)
@@ -24,8 +24,11 @@ def get_cobraII(download_weights=True,checkpoint_path=None,local_dir="weights"):
     if download_weights:
         if not os.path.exists(local_dir):
             os.makedirs(local_dir)
-        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="cobraII.pth.tar", local_dir="weights", force_download=True)
+        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="cobraII.pth.tar", local_dir=local_dir, force_download=True)
         print(f"Saving model to {checkpoint_path}")
+    else:
+        if not os.path.exists(checkpoint_path):
+            raise FileNotFoundError(f"Checkpoint file {checkpoint_path} not found")
     state_dict = torch.load(checkpoint_path, map_location="cpu")
     model = Cobra(layers=1,input_dims=[512,1024,1280,1536],
                   num_heads=4,dropout=0.2,att_dim=256,d_state=128)

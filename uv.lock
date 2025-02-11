@@ -101,22 +101,15 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "causal-conv1d" },
-<<<<<<< HEAD
     { name = "einops" },
     { name = "h5py" },
     { name = "huggingface-hub" },
-=======
-    { name = "h5py" },
->>>>>>> d43e2a91628f072f319617895e62ce10bdf241fa
     { name = "jinja2" },
     { name = "mamba-ssm" },
     { name = "numpy" },
     { name = "pandas" },
     { name = "pyyaml" },
-<<<<<<< HEAD
     { name = "setuptools" },
-=======
->>>>>>> d43e2a91628f072f319617895e62ce10bdf241fa
     { name = "torch" },
     { name = "torchvision" },
     { name = "tqdm" },
@@ -124,7 +117,6 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-<<<<<<< HEAD
     { name = "causal-conv1d", specifier = ">=1.4.0" },
     { name = "einops", specifier = ">=0.8.0" },
     { name = "h5py", specifier = ">=3.12.1" },
@@ -135,19 +127,8 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "setuptools", specifier = ">=42" },
-    { name = "torch", specifier = "==2.4.1" },
+    { name = "torch", specifier = ">=2.4.1" },
     { name = "torchvision", specifier = ">=0.19.1" },
-=======
-    { name = "causal-conv1d", specifier = "==1.4.0" },
-    { name = "h5py", specifier = ">=3.12.1" },
-    { name = "jinja2", specifier = ">=3.1.4" },
-    { name = "mamba-ssm", specifier = "==2.2.2" },
-    { name = "numpy", specifier = ">=2.0.2" },
-    { name = "pandas", specifier = ">=2.2.3" },
-    { name = "pyyaml", specifier = ">=6.0.2" },
-    { name = "torch", specifier = "==2.4.1" },
-    { name = "torchvision", specifier = "==0.19.1" },
->>>>>>> d43e2a91628f072f319617895e62ce10bdf241fa
     { name = "tqdm", specifier = ">=4.67.1" },
 ]
 
@@ -853,7 +834,6 @@ wheels = [
 ]
 
 [[package]]
-<<<<<<< HEAD
 name = "setuptools"
 version = "75.6.0"
 source = { registry = "https://pypi.org/simple" }
@@ -863,8 +843,6 @@ wheels = [
 ]
 
 [[package]]
-=======
->>>>>>> d43e2a91628f072f319617895e62ce10bdf241fa
 name = "six"
 version = "1.17.0"
 source = { registry = "https://pypi.org/simple" }

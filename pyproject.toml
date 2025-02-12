@@ -28,6 +28,7 @@ dependencies = [
     "torchvision>=0.19.1",
     "einops>=0.8.0",
     "huggingface-hub>=0.26.5",
+    "setuptools",
 ]
 
 [build-system]

@@ -6,11 +6,14 @@ ing in Computational Pathology. In proceedings of Medi-
 cal Image Computing and Computer Assisted Intervention –
 MICCAI 2024. Springer Nature Switzerland, 2024
 """
+
 import torch
 import torch.nn as nn
 import warnings
-warnings.simplefilter(action='ignore', category=FutureWarning)
+
+warnings.simplefilter(action="ignore", category=FutureWarning)
 from mamba_ssm import Mamba2
+
 
 def initialize_weights(module):
     for m in module.modules():
@@ -24,12 +27,22 @@ def initialize_weights(module):
 
 
 class Mamba2Enc(nn.Module):
-    def __init__(self, in_dim,dim, n_classes, dropout=0.25, act="gelu", layer=2, rate=10, d_state=64):
+    def __init__(
+        self,
+        in_dim,
+        dim,
+        n_classes,
+        dropout=0.25,
+        act="gelu",
+        layer=2,
+        rate=10,
+        d_state=64,
+    ):
         super(Mamba2Enc, self).__init__()
         self._fc1 = [nn.Linear(in_dim, dim)]
-        if act.lower() == 'relu':
+        if act.lower() == "relu":
             self._fc1 += [nn.ReLU()]
-        elif act.lower() == 'gelu':
+        elif act.lower() == "gelu":
             self._fc1 += [nn.GELU()]
         if dropout:
             self._fc1 += [nn.Dropout(dropout)]
@@ -44,11 +57,11 @@ class Mamba2Enc(nn.Module):
                     nn.LayerNorm(dim),
                     Mamba2(
                         d_model=dim,
-                        d_state=d_state,  
-                        d_conv=4,    
+                        d_state=d_state,
+                        d_conv=4,
                         expand=2,
                     ),
-                    )
+                )
             )
 
         self.n_classes = n_classes
@@ -61,24 +74,24 @@ class Mamba2Enc(nn.Module):
     def forward(self, x):
         if len(x.shape) == 2:
             x = x.expand(1, -1, -1)
-        h = x.float()  
-        
-        h = self._fc1(h)  
+        h = x  # .float()
+
+        h = self._fc1(h)
 
         for layer in self.layers:
             h_ = h
             h = layer[0](h)
-            h = layer[1](h) 
+            h = layer[1](h)
             h = h + h_
 
-        logits = self.classifier(h) 
+        logits = self.classifier(h)
         return logits
-    
+
     def relocate(self):
-        device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._fc1 = self._fc1.to(device)
-        self.layers  = self.layers.to(device)
-        
+        self.layers = self.layers.to(device)
+
         self.attention = self.attention.to(device)
         self.norm = self.norm.to(device)
         self.classifier = self.classifier.to(device)

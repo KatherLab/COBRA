@@ -206,6 +206,8 @@ def main():
         )
         model = model.half()
         dtype = torch.float16
+    else:
+        dtype = torch.float32
     get_pat_embs(
         model,
         args.output_dir,

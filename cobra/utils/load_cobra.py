@@ -7,12 +7,17 @@ import os
 import requests
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-def get_cobra(download_weights=False,checkpoint_path=None,local_dir="weights"):
+def get_cobra(download_weights=False,checkpoint_path="weights/pytorch_model.bin",):
     if download_weights:
-        if not os.path.exists(local_dir):
-            os.makedirs(local_dir)
-        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", local_dir=local_dir, force_download=True)
+        if not os.path.exists(os.path.dirname(checkpoint_path)):
+            os.makedirs(os.path.dirname(checkpoint_path))
+        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", 
+                                          local_dir=os.path.dirname(checkpoint_path), 
+                                          force_download=True)
         print(f"Saving model to {checkpoint_path}")
+    else:
+        if not os.path.exists(checkpoint_path):
+            raise FileNotFoundError(f"Checkpoint file {checkpoint_path} not found")
     state_dict = torch.load(checkpoint_path, map_location="cpu")
     model = Cobra(input_dims=[768,1024,1280,1536],)
     model.load_state_dict(state_dict)
@@ -20,11 +25,11 @@ def get_cobra(download_weights=False,checkpoint_path=None,local_dir="weights"):
     return model
 
 
-def get_cobraII(download_weights=True,checkpoint_path="weights/cobraII.pth.tar"):
+def get_cobraII(download_weights=False,checkpoint_path="weights/cobraII.pth.tar"):
     if download_weights:
-        if not os.path.exists(checkpoint_path):
-            os.makedirs(checkpoint_path)
-        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename=os.path.basename(checkpoint_path), 
+        if not os.path.exists(os.path.dirname(checkpoint_path)):
+            os.makedirs(os.path.dirname(checkpoint_path))
+        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="cobraII.pth.tar", 
                                           local_dir=os.path.dirname(checkpoint_path), 
                                           force_download=True)
         print(f"Saving model to {checkpoint_path}")
@@ -40,5 +45,5 @@ def get_cobraII(download_weights=True,checkpoint_path="weights/cobraII.pth.tar")
     else:
         cobra_weights = state_dict
     model.load_state_dict(cobra_weights)
-    print("COBRA model loaded successfully")
+    print("COBRAII model loaded successfully")
     return model

@@ -66,6 +66,9 @@ class Cobra(nn.Module):
         else: 
             A = self.attn[0](h)
         
+        if get_attention:
+            return A
+        
         if multi_fm_mode:
             if fm_idx:
                 feats = torch.bmm(A,x[fm_idx]).squeeze(0).squeeze(0)
@@ -77,6 +80,4 @@ class Cobra(nn.Module):
         else:
             feats = torch.bmm(A,x).squeeze(1)
         
-        if get_attention:
-            return feats, A
         return feats

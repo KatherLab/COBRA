@@ -26,7 +26,6 @@ ssl:
   batch_size: 1024
     
 general:
-
   nr_feats: 1024
   fms:
     - ctranspath
@@ -44,4 +43,4 @@ general:
     - tcga_stad
   paths:
     out_dir: /path/to/cobra/model/cobra
-  
+

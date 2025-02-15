@@ -20,11 +20,13 @@ def get_cobra(download_weights=False,checkpoint_path=None,local_dir="weights"):
     return model
 
 
-def get_cobraII(download_weights=True,checkpoint_path=None,local_dir="weights"):
+def get_cobraII(download_weights=True,checkpoint_path="weights/cobraII.pth.tar"):
     if download_weights:
-        if not os.path.exists(local_dir):
-            os.makedirs(local_dir)
-        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="cobraII.pth.tar", local_dir=local_dir, force_download=True)
+        if not os.path.exists(checkpoint_path):
+            os.makedirs(checkpoint_path)
+        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename=os.path.basename(checkpoint_path), 
+                                          local_dir=os.path.dirname(checkpoint_path), 
+                                          force_download=True)
         print(f"Saving model to {checkpoint_path}")
     else:
         if not os.path.exists(checkpoint_path):

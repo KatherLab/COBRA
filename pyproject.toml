@@ -29,6 +29,9 @@ dependencies = [
     "einops>=0.8.0",
     "huggingface-hub>=0.26.5",
     "setuptools",
+    "torchmetrics>=1.6.1",
+    "pytorch-lightning>=2.5.0.post0",
+    "scikit-learn>=1.6.1",
 ]
 
 [build-system]

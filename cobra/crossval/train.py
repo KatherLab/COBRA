@@ -116,7 +116,12 @@ def main(config_path):
     with open(config_output_path, "w") as file:
         yaml.dump(cfg, file)
     hps = cfg["hps"]
-    data = pd.read_csv(cfg["csv_path"])
+    if cfg["csv_path"].endswith(".csv"):
+        data = pd.read_csv(cfg["csv_path"])
+    elif cfg["csv_path"].endswith(".xlsx"):
+        data = pd.read_excel(cfg["csv_path"])
+    else:
+        raise ValueError(f"Unsupported file format: only .csv and .xlsx are supported found {os.path.splitext(cfg['csv_path'])[1]}")
     data = data.dropna(subset=[cfg["target_column"]], axis=0)
     targets = data[cfg["target_column"]].values
     label_encoder = LabelEncoder()

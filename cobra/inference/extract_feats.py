@@ -13,6 +13,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 import pandas as pd
+import numpy as np
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 def load_patch_feats(h5_path,device):
@@ -22,7 +23,16 @@ def load_patch_feats(h5_path,device):
     with h5py.File(h5_path, "r") as f:
         feats = f["feats"][:]
         feats = torch.tensor(feats).to(device)
-    return feats
+        coords = np.array(f["coords"][:])
+        #coords = torch.tensor(coords).to(device)
+    return feats, coords
+
+def match_coords(feats_w,feats_a,coords_w,coords_a):
+
+    idx_w = np.array([i for i, coord in enumerate(coords_w) if any(np.all(coord == coords_a, axis=1))])
+    idx_a = np.array([i for i, coord in enumerate(coords_a) if any(np.all(coord == coords_w, axis=1))])
+  
+    return feats_w[idx_w], feats_a[idx_a]
 
 def get_cobra_feats(model,patch_feats_w,patch_feats_a,top_k=None):
     with torch.inference_mode():
@@ -51,6 +61,7 @@ def get_pat_embs(
     top_k=None,
     weighting_fm="Virchow2",
     aggregation_fm="Virchow2",
+    microns=224,
 ):
     slide_table = pd.read_csv(slide_table_path)
     patient_groups = slide_table.groupby("PATIENT")
@@ -69,17 +80,19 @@ def get_pat_embs(
         for _, row in group.iterrows():
             slide_filename = row["FILENAME"]
             h5_path_w = os.path.join(feat_dir_w, slide_filename)
-            feats_w = load_patch_feats(h5_path_w, device)
+            feats_w, coords_w = load_patch_feats(h5_path_w, device)
             if feats_w is None:
                 continue
             if feat_dir_a:
                 h5_path_a = os.path.join(feat_dir_a, slide_filename)
-                feats_a = load_patch_feats(h5_path_a, device)
+                feats_a, coords_a = load_patch_feats(h5_path_a, device)
             else:
                 feats_a = feats_w
             if feats_a is None:
                 continue
             
+            feats_w,feats_a = match_coords(feats_w,feats_a,coords_w,coords_a)
+
             all_feats_list_w.append(feats_w)
             all_feats_list_a.append(feats_a)
 
@@ -116,6 +129,7 @@ def get_pat_embs(
         f.attrs["dtype"] = str(dtype)
         f.attrs["weighting_FM"] = weighting_fm
         f.attrs["aggregation_FM"] = aggregation_fm
+        f.attrs["microns"] = microns
         tqdm.write(f"Finished extraction, saved to {output_file}")
 
 
@@ -131,6 +145,7 @@ def get_slide_embs(
     top_k=None,
     weighting_fm="Virchow2",
     aggregation_fm="Virchow2",
+    microns=224,
 ):
     slide_dict = {}
 
@@ -180,6 +195,7 @@ def get_slide_embs(
         f.attrs["dtype"] = str(dtype)
         f.attrs["weighting_FM"] = weighting_fm
         f.attrs["aggregation_FM"] = aggregation_fm
+        f.attrs["microns"] = microns
         tqdm.write(f"Finished extraction, saved to {output_file}")
 
 
@@ -263,6 +279,14 @@ def main():
         help="File name",
     )
     parser.add_argument(
+        "-r",
+        "--microns",
+        type=int,
+        required=False,
+        default=224,
+        help="microns per patch used for extraction",
+    )
+    parser.add_argument(
         "-s", "--slide_table", type=str, required=False, help="slide table path"
     )
     parser.add_argument(
@@ -319,6 +343,7 @@ def main():
             top_k=args.top_k,
             weighting_fm=args.patch_encoder,
             aggregation_fm=args.patch_encoder_a,
+            microns=args.microns,
         )
     else:
         get_slide_embs(
@@ -333,6 +358,7 @@ def main():
             top_k=args.top_k,
             weighting_fm=args.patch_encoder,
             aggregation_fm=args.patch_encoder_a,
+            microns=args.microns,
         )
         
 if __name__ == "__main__":

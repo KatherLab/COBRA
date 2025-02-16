@@ -1,18 +1,18 @@
 train:
-  csv_path: /mnt/bulk-neptune/timlenz/stamp/metadata/tcga_brca.csv
-  target_column: PGR
+  csv_path: /p/scratch/mfmpm/tim/data/Engelmann/metadata/clini_table_ed.xlsx
+  target_column: Klassifikation
   patient_id_column: PATIENT
-  h5_path: /mnt/bulk-neptune/timlenz/COBRA/outputs-fe-64/cobraII/TCGA-BRCA/cobraII_feats_BRCA.h5
-  output_folder: /mnt/bulk-neptune/timlenz/COBRA/outputs/cobraII-BRCA-PGR-64
+  h5_path: /p/scratch/mfmpm/tim/data/Engelmann/processed_data/hybrid_cobra/cobraII_hybrid_conch_v2_feats.h5
+  output_folder: /p/scratch/mfmpm/tim/data/Engelmann/crossval-cobra-hybrid-conch-v2
   hps:
     lr: 0.0001
     hidden_dim: 256
-    dropout: 0.3
     max_epochs: 64
     patience: 16
     batch_size: 16
     num_workers: 8
     n_folds: 5
+    #dropout: 0.3
 
 deploy:
   csv_path: /mnt/bulk-neptune/timlenz/stamp/metadata/cptac_brca.csv

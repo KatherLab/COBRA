@@ -32,6 +32,7 @@ dependencies = [
     "torchmetrics>=1.6.1",
     "pytorch-lightning>=2.5.0.post0",
     "scikit-learn>=1.6.1",
+    "openpyxl>=3.1.5",
 ]
 
 [build-system]

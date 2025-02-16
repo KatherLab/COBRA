@@ -102,6 +102,7 @@ def get_pat_embs(
                 feats_a, coords_a = load_patch_feats(h5_path_a, device)
             else:
                 feats_a = feats_w
+                coords_a = coords_w
             if feats_a is None:
                 continue
             

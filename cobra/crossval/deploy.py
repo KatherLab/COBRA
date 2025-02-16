@@ -55,7 +55,7 @@ def main(config_path):
     all_test_results = []
     auroc_scores = []
 
-    for fold in range(5):
+    for fold in range(cfg["hps"]["n_folds"]):
         fold_output_folder = os.path.join(cfg["output_folder"], f"fold_{fold}")
         model_path = os.path.join(fold_output_folder, "best_model.ckpt")
         if not os.path.exists(model_path):
@@ -63,11 +63,12 @@ def main(config_path):
             continue
 
         model = MLP.load_from_checkpoint(
-            model_path, input_dim=input_dim, output_dim=output_dim
+            model_path, input_dim=input_dim, output_dim=output_dim, hidden_dim=cfg["hps"]["hidden_dim"],
         )
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model.to(device)
+        model.eval()
         y_true = []
         y_pred = []
 
@@ -98,6 +99,9 @@ def main(config_path):
         auroc = roc_auc_score(y_true, y_pred)
         auroc_scores.append({"fold": fold, "auroc": auroc})
         print(f"Fold {fold} AUROC: {auroc}")
+    avg_auroc = np.mean([score["auroc"] for score in auroc_scores])
+    print(f"Average AUROC over all folds: {avg_auroc}")
+    auroc_scores.append({"fold": "average", "auroc": avg_auroc})
         
     deploy_output_folder = os.path.join(cfg["output_folder"], "deploy")
     os.makedirs(deploy_output_folder, exist_ok=True)

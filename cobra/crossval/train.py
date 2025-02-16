@@ -45,13 +45,13 @@ class PatientDataset(Dataset):
 
 
 class MLP(pl.LightningModule):
-    def __init__(self, input_dim, output_dim, hidden_dim=512, lr=1e-4):
+    def __init__(self, input_dim, output_dim, hidden_dim=512, lr=1e-4,dropout=0.5):
         super(MLP, self).__init__()
         self.model = nn.Sequential(
             nn.LayerNorm(input_dim),
             nn.Linear(input_dim, hidden_dim),
             nn.SiLU(),
-            nn.Dropout(),
+            nn.Dropout(dropout),
             nn.Linear(hidden_dim, output_dim),
         )
         self.criterion = nn.CrossEntropyLoss()
@@ -191,7 +191,7 @@ def main(config_path):
         output_dim = len(np.unique(targets))
         print(f"Input dim: {input_dim}, Output dim: {output_dim}")
 
-        model = MLP(input_dim, output_dim, hidden_dim=hps["hidden_dim"], lr=hps["lr"])
+        model = MLP(input_dim, output_dim, hidden_dim=hps["hidden_dim"], lr=hps["lr"],dropout=hps["dropout"])
 
         if not os.path.exists(cfg["output_folder"]):
             os.makedirs(cfg["output_folder"])
@@ -220,6 +220,7 @@ def main(config_path):
             checkpoint_callback.best_model_path,
             input_dim=input_dim,
             output_dim=output_dim,
+            hidden_dim=hps["hidden_dim"],
         )
         trainer.test(model, test_loader)
 

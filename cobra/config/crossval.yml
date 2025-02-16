@@ -2,11 +2,12 @@ train:
   csv_path: /mnt/bulk-neptune/timlenz/stamp/metadata/tcga_brca.csv
   target_column: PGR
   patient_id_column: PATIENT
-  h5_path: /mnt/bulk-neptune/timlenz/COBRA/outputs-fe/cobraII/TCGA-BRCA/cobraII_feats_BRCA.h5
-  output_folder: /mnt/bulk-neptune/timlenz/COBRA/outputs/cobraII-BRCA-PGR
+  h5_path: /mnt/bulk-neptune/timlenz/COBRA/outputs-fe-64/cobraII/TCGA-BRCA/cobraII_feats_BRCA.h5
+  output_folder: /mnt/bulk-neptune/timlenz/COBRA/outputs/cobraII-BRCA-PGR-64
   hps:
     lr: 0.0001
-    hidden_dim: 512
+    hidden_dim: 256
+    dropout: 0.3
     max_epochs: 64
     patience: 16
     batch_size: 16
@@ -17,6 +18,9 @@ deploy:
   csv_path: /mnt/bulk-neptune/timlenz/stamp/metadata/cptac_brca.csv
   target_column: PGR
   patient_id_column: PATIENT
-  h5_path: /mnt/bulk-neptune/timlenz/COBRA/outputs-fe/cobraII/CPTAC-BRCA/cobraII_feats_BRCA.h5
-  output_folder: /mnt/bulk-neptune/timlenz/COBRA/outputs/cobraII-BRCA-PGR
-  label_encoder_path: /mnt/bulk-neptune/timlenz/COBRA/outputs/cobraII-BRCA-PGR/label_encoder.pkl
+  h5_path: /mnt/bulk-neptune/timlenz/COBRA/outputs-fe-64/cobraII/CPTAC-BRCA/cobraII_feats_BRCA.h5
+  output_folder: /mnt/bulk-neptune/timlenz/COBRA/outputs/cobraII-BRCA-PGR-64
+  label_encoder_path: /mnt/bulk-neptune/timlenz/COBRA/outputs/cobraII-BRCA-PGR-64/label_encoder.pkl
+  hps:
+    hidden_dim: 256
+    n_folds: 5

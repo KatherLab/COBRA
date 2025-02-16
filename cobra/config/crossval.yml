@@ -5,14 +5,14 @@ train:
   h5_path: /p/scratch/mfmpm/tim/data/Engelmann/processed_data/hybrid_cobra/cobraII_hybrid_conch_v2_feats.h5
   output_folder: /p/scratch/mfmpm/tim/data/Engelmann/crossval-cobra-hybrid-conch-v2
   hps:
-    lr: 0.0001
+    lr: 0.0005
     hidden_dim: 256
     max_epochs: 64
     patience: 16
     batch_size: 16
     num_workers: 8
     n_folds: 5
-    #dropout: 0.3
+    dropout: 0.3
 
 deploy:
   csv_path: /mnt/bulk-neptune/timlenz/stamp/metadata/cptac_brca.csv

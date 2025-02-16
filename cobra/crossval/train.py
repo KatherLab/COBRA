@@ -156,6 +156,7 @@ def main(config_path):
     targets = targets[common_indices]
 
     skf = StratifiedKFold(n_splits=hps["n_folds"], shuffle=True, random_state=42)
+    all_fold_aurocs = []    
     for fold, (train_val_idx, test_idx) in enumerate(skf.split(patient_ids, targets)):
         fold_output_folder = os.path.join(cfg["output_folder"], f"fold_{fold}")
         if os.path.exists(os.path.join(fold_output_folder, "best_model.ckpt")):
@@ -250,6 +251,13 @@ def main(config_path):
             os.path.join(cfg["output_folder"], f"fold_{fold}_test_results.csv"),
             index=False,
         )
+        avg_auroc = trainer.callback_metrics["test_auroc"].item()
+        print(f"Fold {fold} Test AUROC: {avg_auroc}")
+
+        all_fold_aurocs.append(avg_auroc)
+
+    avg_auroc_over_folds = np.mean(all_fold_aurocs)
+    print(f"Average Test AUROC over all folds: {avg_auroc_over_folds}")
 
 
 if __name__ == "__main__":

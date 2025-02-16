@@ -1,5 +1,6 @@
 import os
 import torch
+import torch.nn.functional as F
 import h5py
 from tqdm import tqdm
 from glob import glob
@@ -29,21 +30,34 @@ def load_patch_feats(h5_path,device):
 
 def match_coords(feats_w,feats_a,coords_w,coords_a):
 
+    # Sort coordinates and features based on sorted indices
+    sorted_indices_w = np.lexsort((coords_w[:, 1], coords_w[:, 0]))
+    sorted_indices_a = np.lexsort((coords_a[:, 1], coords_a[:, 0]))
+
+    coords_w = coords_w[sorted_indices_w]
+    coords_a = coords_a[sorted_indices_a]
+    feats_w = feats_w[sorted_indices_w]
+    feats_a = feats_a[sorted_indices_a]
+
+    # Find matching indices after sorting
     idx_w = np.array([i for i, coord in enumerate(coords_w) if any(np.all(coord == coords_a, axis=1))])
     idx_a = np.array([i for i, coord in enumerate(coords_a) if any(np.all(coord == coords_w, axis=1))])
-  
+
     return feats_w[idx_w], feats_a[idx_a]
 
 def get_cobra_feats(model,patch_feats_w,patch_feats_a,top_k=None):
     with torch.inference_mode():
         A = model(patch_feats_w,get_attention=True)
+        # A.shape: (1,1,num_patches)
         if top_k:
             if A.size(-1) < top_k:
                 top_k = A.size(-1)
-            top_k_indices = torch.topk(A, top_k, dim=-1).indices
-            top_k_A = A.gather(-1, top_k_indices)
+            top_k_indices = torch.topk(A, top_k, dim=-1).indices # (1,1,top_k)
+            top_k_A = A.gather(-1, top_k_indices) # (1,1,top_k)
             top_k_x = patch_feats_a.gather(1, top_k_indices.squeeze(0).unsqueeze(-1).expand(-1, -1, patch_feats_a.size(-1)))
-            cobra_feats = torch.bmm(top_k_A, top_k_x).squeeze(1)
+            # top_k_x.shape: (1,top_k,feat_dim)
+            cobra_feats = torch.bmm(F.softmax(top_k_A,dim=-1), top_k_x).squeeze(1)
+            # cobra_feats.shape: (1,feat_dim)
         else:
             cobra_feats = torch.bmm(A, patch_feats_a).squeeze(1)
     return cobra_feats.squeeze(0)
@@ -125,7 +139,7 @@ def get_pat_embs(
         for patient_id, data in pat_dict.items():
             f.create_dataset(f"{patient_id}", data=data["feats"])
         f.attrs["extractor"] = model_name
-        f.attrs["top_k"] = top_k
+        f.attrs["top_k"] = top_k if top_k else "None"
         f.attrs["dtype"] = str(dtype)
         f.attrs["weighting_FM"] = weighting_fm
         f.attrs["aggregation_FM"] = aggregation_fm
@@ -182,7 +196,7 @@ def get_slide_embs(
         slide_feats = get_cobra_feats(model, tile_embs_w.to(dtype), tile_embs_a.to(dtype), top_k=top_k)
         slide_dict[slide_name] = {
             "feats": slide_feats.to(torch.float32).detach().cpu().numpy(),
-            "extractor": f"{model_name}-{pe_name}",
+            "extractor": model_name,
         }
 
     output_file = os.path.join(output_dir, output_file)
@@ -191,7 +205,7 @@ def get_slide_embs(
         for slide_name, data in slide_dict.items():
             f.create_dataset(f"{slide_name}", data=data["feats"])
         f.attrs["extractor"] = model_name
-        f.attrs["top_k"] = top_k
+        f.attrs["top_k"] = top_k if top_k else "None"
         f.attrs["dtype"] = str(dtype)
         f.attrs["weighting_FM"] = weighting_fm
         f.attrs["aggregation_FM"] = aggregation_fm

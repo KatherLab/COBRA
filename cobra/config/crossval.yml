@@ -2,11 +2,11 @@ train:
   csv_path: /p/scratch/mfmpm/tim/data/Engelmann/metadata/clini_table_ed.xlsx
   target_column: Klassifikation
   patient_id_column: PATIENT
-  h5_path: /p/scratch/mfmpm/tim/data/Engelmann/processed_data/hybrid_cobra/cobraII_hybrid_conch_v2_feats.h5
-  output_folder: /p/scratch/mfmpm/tim/data/Engelmann/crossval-cobra-hybrid-conch-v2
+  h5_path: /p/scratch/mfmpm/tim/data/Engelmann/processed_data/hybrid_cobra-224-sorted/cobraII_hybrid_conch_v2_feats.h5
+  output_folder: /p/scratch/mfmpm/tim/data/Engelmann/crossval-cobra-hybrid-conch-v2-224-sorted
   hps:
     lr: 0.0005
-    hidden_dim: 256
+    hidden_dim: 512
     max_epochs: 64
     patience: 16
     batch_size: 16

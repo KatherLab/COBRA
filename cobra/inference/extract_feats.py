@@ -145,8 +145,20 @@ def get_pat_embs(
         f.attrs["weighting_FM"] = weighting_fm
         f.attrs["aggregation_FM"] = aggregation_fm
         f.attrs["microns"] = microns
-        tqdm.write(f"Finished extraction, saved to {output_file}")
 
+
+
+    tqdm.write(f"Finished extraction, saved to {output_file}")
+    metadata = {
+        "extractor": model_name,
+        "top_k": top_k if top_k else "None",
+        "dtype": str(dtype),
+        "weighting_FM": weighting_fm,
+        "aggregation_FM": aggregation_fm,
+        "microns": microns,
+    }
+    with open(os.path.join(output_dir, "metadata.json"), "w") as json_file:
+        json.dump(metadata, json_file, indent=4)
 
 def get_slide_embs(
     model,
@@ -211,7 +223,18 @@ def get_slide_embs(
         f.attrs["weighting_FM"] = weighting_fm
         f.attrs["aggregation_FM"] = aggregation_fm
         f.attrs["microns"] = microns
-        tqdm.write(f"Finished extraction, saved to {output_file}")
+    
+    tqdm.write(f"Finished extraction, saved to {output_file}")
+    metadata = {
+        "extractor": model_name,
+        "top_k": top_k if top_k else "None",
+        "dtype": str(dtype),
+        "weighting_FM": weighting_fm,
+        "aggregation_FM": aggregation_fm,
+        "microns": microns,
+    }
+    with open(os.path.join(output_dir, "metadata.json"), "w") as json_file:
+        json.dump(metadata, json_file, indent=4)
 
 
 def main():

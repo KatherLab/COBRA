@@ -255,7 +255,8 @@ def main(config_path):
         print(f"Fold {fold} Test AUROC: {avg_auroc}")
 
         all_fold_aurocs.append(avg_auroc)
-
+    auroc_df = pd.DataFrame({"fold": list(range(len(all_fold_aurocs))), "auroc": all_fold_aurocs})
+    auroc_df.to_csv(os.path.join(cfg["output_folder"], "fold_aurocs.csv"), index=False)
     avg_auroc_over_folds = np.mean(all_fold_aurocs)
     print(f"Average Test AUROC over all folds: {avg_auroc_over_folds}")
 

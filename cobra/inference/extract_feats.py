@@ -10,11 +10,12 @@ warnings.simplefilter(action="ignore", category=FutureWarning)
 from cobra.utils.load_cobra import get_cobra, get_cobraII
 from cobra.model.cobra import Cobra
 import argparse
-import yaml
-from jinja2 import Environment, FileSystemLoader
+
 from pathlib import Path
 import pandas as pd
 import numpy as np
+import json
+
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 def load_patch_feats(h5_path,device):
@@ -239,7 +240,7 @@ def get_slide_embs(
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Extract slide embeddings using COBRA model"
+        description="Extract slide/pat embeddings using COBRA model"
     )
     parser.add_argument(
         "-d",

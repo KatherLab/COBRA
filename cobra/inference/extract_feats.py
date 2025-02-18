@@ -43,7 +43,8 @@ def match_coords(feats_w,feats_a,coords_w,coords_a):
     # Find matching indices after sorting
     idx_w = np.array([i for i, coord in enumerate(coords_w) if any(np.all(coord == coords_a, axis=1))])
     idx_a = np.array([i for i, coord in enumerate(coords_a) if any(np.all(coord == coords_w, axis=1))])
-
+    assert len(idx_w) == len(idx_a), "Lengths do not match"
+    assert len(idx_w) > 0, "No matching coordinates found"
     return feats_w[idx_w], feats_a[idx_a]
 
 def get_cobra_feats(model,patch_feats_w,patch_feats_a,top_k=None):

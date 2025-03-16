@@ -14,7 +14,7 @@
 </p>
 
 ### News
-- [Feb 27th 2025] Our (paper)[https://arxiv.org/abs/2411.13623] has been accepted to [CVPR 2025](https://cvpr.thecvf.com/Conferences/2025/AcceptedPapers)! 🎉
+- [Feb 27th 2025] Our [paper](https://arxiv.org/abs/2411.13623) has been accepted to [CVPR 2025](https://cvpr.thecvf.com/Conferences/2025/AcceptedPapers)! 🎉
 - [Feb 7th 2025]: [COBRA II](https://huggingface.co/KatherLab/COBRA) trained on all TCGA cohorts, is now live and ready to use!!
 ### Installation
 

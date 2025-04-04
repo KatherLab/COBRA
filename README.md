@@ -3,7 +3,12 @@
     COntrastive Biomarker Representation Alignment (COBRA)
 </h1>
 
-[Preprint](https://arxiv.org/abs/2411.13623) | [Download Models](https://huggingface.co/KatherLab/COBRA) | [Cite](#citation)
+<!-- [Preprint](https://arxiv.org/abs/2411.13623) | [Download Models](https://huggingface.co/KatherLab/COBRA) | [Cite](#citation) -->
+<a href='https://arxiv.org/abs/2411.13623'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a> 
+<a href='#citation'><img src='https://img.shields.io/badge/Paper-Cite-blue'></a>
+<a href='https://huggingface.co/KatherLab/COBRA'><img src='https://img.shields.io/badge/Model-Huggingface-yellow'></a>
+
+
 
 ### Abstract
 

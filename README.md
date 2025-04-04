@@ -29,6 +29,11 @@ uv pip install torch==2.4.1 setuptools packaging wheel numpy==2.0.0
 uv sync --no-build-isolation
 ```
 
+If there are any issues, consider also installing hatchling and editables:
+```bash
+uv pip install hatchling editables
+```
+
 ### WSI Level Embeddings
 
 To deploy the COBRA model, follow these steps:
@@ -49,11 +54,11 @@ To deploy the COBRA model, follow these steps:
     
 2. **Request Access on [Huggingface](https://huggingface.co/KatherLab/COBRA)**.
 3. **Deploy COBRA**: 
-- extract slide level embeddings using COBRA I/II
+- extract slide level embeddings using COBRA I/II ( | refers to or not pipe)
 ```bash 
 python -m cobra.inference.extract_feats_slide --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir> (--checkpoint_path <checkpoint_path> --config <path_to_config> | -d)  
 ```
-- extract patient level embeddings using COBRA I/II
+- extract patient level embeddings using COBRA I/II ( | refers to or not pipe)
 ```bash 
 python -m cobra.inference.extract_feats_patient --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir>  --slide_table <slide_table_path>  (--checkpoint_path <checkpoint_path> --config <path_to_config> | -d) 
 ```

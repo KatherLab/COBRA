@@ -33,6 +33,9 @@ dependencies = [
     "pytorch-lightning>=2.5.0.post0",
     "scikit-learn>=1.6.1",
     "openpyxl>=3.1.5",
+    "matplotlib>=3.10.1",
+    "openslide-python>=1.4.1",
+    "openslide-bin>=4.0.0.6",
 ]
 
 [build-system]

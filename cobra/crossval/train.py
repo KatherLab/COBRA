@@ -21,11 +21,7 @@ import pickle
 class PatientDataset(Dataset):
     def __init__(self, h5_file, patient_ids, target_ids):
         self.h5_file = h5_file
-        #with h5py.File(self.h5_file, "r") as f:
-        #    self.patient_dict = {k: v for k, v in f.items() if k in patient_ids}
-        #assert len(self.patient_dict.keys()) == len(patient_ids), "Lengths do not match"
-        # self.patient_ids = patient_ids
-        #self.target_dict = target_dict
+
         self.target_ids = target_ids
         self.patient_ids = patient_ids
 
@@ -37,8 +33,6 @@ class PatientDataset(Dataset):
         target = self.target_ids[idx]
         with h5py.File(self.h5_file, 'r') as f:
             features = f[patient_id][:]
-        #features = self.patient_dict[patient_id]
-        #target = self.target_dict[patient_id]
         return torch.tensor(features, dtype=torch.float32), torch.tensor(
             target, dtype=torch.long
         )

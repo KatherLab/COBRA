@@ -34,9 +34,18 @@ uv pip install torch==2.4.1 setuptools packaging wheel numpy==2.0.0
 uv sync --no-build-isolation
 ```
 
-If there are any issues, consider also installing hatchling and editables:
+If there are any **issues**, consider also installing hatchling and editables:
 ```bash
 uv pip install hatchling editables
+```
+And make sure python3.11-devel or python3.11-dev is installed. <br>
+Fedora or rel.:
+```bash
+dnf install python3.11-devel
+```
+Debian or rel.:
+```bash
+apt install python3.11-dev
 ```
 
 ### WSI Level Embeddings

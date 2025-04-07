@@ -52,7 +52,8 @@ def load_patch_features(feat_path, device="cuda"):
     return feats, coords
     
 
-def create_heatmap(model, slide_name, wsi_path, feat_path, output_dir, microns_per_patch=112, patch_size=224, scale_factor=8, device="cuda"):
+def create_heatmap(model, slide_name, wsi_path, feat_path, output_dir, microns_per_patch=112,
+     patch_size=224, scale_factor=8, device="cuda" , stamp_v=1):
     """
     Create a heatmap for the given slide using the specified model and save it to the output directory.
 
@@ -69,15 +70,16 @@ def create_heatmap(model, slide_name, wsi_path, feat_path, output_dir, microns_p
     """
     # Load patch features
     feats, coords = load_patch_features(feat_path, device=device)
-
+    patch_feat_mpp = (microns_per_patch / patch_size)
     with torch.inference_mode():
         attention = model(feats.to(torch.float32), get_attention=True).squeeze().cpu().numpy()
-    coords = np.floor(coords.cpu().numpy() / (microns_per_patch / patch_size)).astype(np.int32)
+    if stamp_v==2:
+        coords = np.floor(coords.cpu().numpy() / patch_feat_mpp).astype(np.int32)
     xs = np.unique(sorted(coords[:, 0]))
     stride = min(xs[1:] - xs[:-1])
 
     coords_norm = coords // stride
-    patch_feat_mpp = (microns_per_patch / patch_size)
+    
     slide = openslide.open_slide(wsi_path)
     mpp = get_slide_mpp_(slide, default_mpp=None)
     dims_um = np.ceil(np.array(slide.dimensions) * mpp / (patch_feat_mpp * patch_size)).astype(np.int32)
@@ -144,7 +146,8 @@ def main(device="cuda"):
     parser.add_argument("-r", "--microns", type=int, required=False, default=112, help="Microns per patch used for extraction.")
     parser.add_argument("-p", "--patch_size", type=int, required=False, default=224, help="Patch size used for extraction.")
     parser.add_argument("-o", "--output_dir", type=str, required=False, default="/path/to/output", help="Directory to save the generated heatmaps.")
-
+    parser.add_argument("-v", "--stamp_version", type=int, required=False, default=2, help="Stamp version, the patch features were extracted with -> difference is mostly coordinate format")
+    
     args = parser.parse_args()
     print(f"Arguments: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -161,7 +164,7 @@ def main(device="cuda"):
             continue
         if not exists(args.output_dir):
             os.makedirs(args.output_dir, exist_ok=True)
-        create_heatmap(model, slide_name, wsi_path, feat_path, args.output_dir, microns_per_patch=args.microns, patch_size=args.patch_size, scale_factor=8, device=device)
+        create_heatmap(model, slide_name, wsi_path, feat_path, args.output_dir, microns_per_patch=args.microns, patch_size=args.patch_size, scale_factor=8, device=device, stamp_v=args.stamp_version)
 
 if __name__ == "__main__":
     main()

@@ -75,6 +75,8 @@ def create_heatmap(model, slide_name, wsi_path, feat_path, output_dir, microns_p
         attention = model(feats.to(torch.float32), get_attention=True).squeeze().cpu().numpy()
     if stamp_v==2:
         coords = np.floor(coords.cpu().numpy() / patch_feat_mpp).astype(np.int32)
+    else:
+        coords = coords.cpu().numpy().astype(np.int32)
     xs = np.unique(sorted(coords[:, 0]))
     stride = min(xs[1:] - xs[:-1])
 
@@ -83,6 +85,9 @@ def create_heatmap(model, slide_name, wsi_path, feat_path, output_dir, microns_p
     slide = openslide.open_slide(wsi_path)
     mpp = get_slide_mpp_(slide, default_mpp=None)
     dims_um = np.ceil(np.array(slide.dimensions) * mpp / (patch_feat_mpp * patch_size)).astype(np.int32)
+    if not np.all(coords_norm.max(0) <= dims_um):
+        tqdm.write(f"Warning: Coordinates exceed slide dimensions. Trying to flip axes...")
+        coords_norm = coords_norm[:, ::-1]
     im = np.zeros((dims_um[0], dims_um[1]), dtype=np.float32)
 
     for att, pos in zip(attention / attention.max(), coords_norm, strict=True):
@@ -155,7 +160,7 @@ def main(device="cuda"):
     model = get_cobraII(download_weights=(not exists(args.checkpoint_path)), checkpoint_path=args.checkpoint_path)
     model.eval()
     model.to(device)
-    for wsi in tqdm(os.listdir(args.wsi_dir)):
+    for wsi in tqdm([f for f in os.listdir(args.wsi_dir) if os.path.isfile(os.path.join(args.wsi_dir, f))]):
         wsi_path = os.path.join(args.wsi_dir, wsi)
         slide_name = os.path.splitext(wsi)[0]
         feat_path = os.path.join(args.feat_dir, slide_name + ".h5")

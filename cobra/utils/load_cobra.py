@@ -70,7 +70,7 @@ def get_cobraII(download_weights=False, checkpoint_path="weights/cobraII.pth.tar
         cobra_weights = {k.split("momentum_enc.")[-1]:v for k,v in chkpt.items() if "momentum_enc" in k and "momentum_enc.proj" not in k}
         if len(list(cobra_weights.keys())) == 0:
             # from stamp finetuning
-            cobra_weights = {k.split("cobra.")[-1]:v for k,v in chkpt["state_dict"].items() if "cobra" in k}
+            cobra_weights = {k.split("cobra.")[-1]:v for k,v in chkpt.items() if "cobra" in k}
     else:
         cobra_weights = state_dict
     model.load_state_dict(cobra_weights)

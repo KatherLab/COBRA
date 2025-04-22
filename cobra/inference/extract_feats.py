@@ -178,11 +178,11 @@ def get_slide_embs(
 ):
     slide_dict = {}
 
-    tile_emb_paths_w = glob(f"{feat_dir_w}/*.h5")
+    tile_emb_paths_w = glob(f"{feat_dir_w}/**/*.h5", recursive=True)
     if feat_dir_a is not None:
-        tile_emb_paths_a = glob(f"{feat_dir_w}/*.h5")
+        tile_emb_paths_a = glob(f"{feat_dir_a}/**/*.h5", recursive=True)
     else:
-        tile_emb_paths_a = glob(f"{feat_dir_a}/*.h5")
+        tile_emb_paths_a = glob(f"{feat_dir_w}/**/*.h5", recursive=True)
     assert len(tile_emb_paths_w) == len(tile_emb_paths_a), (
         f"Expected same number of files, got {len(tile_emb_paths_w)} and {len(tile_emb_paths_a)}"
     )
@@ -198,9 +198,8 @@ def get_slide_embs(
             feats_a = feats_w
         if feats_a is None:
             continue
-        
-        tile_embs_w = feats_w.unsqueeze(0)
-        tile_embs_a = feats_a.unsqueeze(0)
+        tile_embs_w = feats_w[0].unsqueeze(0)
+        tile_embs_a = feats_a[0].unsqueeze(0)
 
         assert tile_embs_w.ndim == 3, f"Expected 3D tensor, got {tile_embs_w.ndim}"
         assert tile_embs_a.ndim == 3, f"Expected 3D tensor, got {tile_embs_a.ndim}"

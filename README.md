@@ -63,20 +63,54 @@ To deploy the COBRA model, follow these steps:
 
 2. **Request Access** on [Huggingface](https://huggingface.co/KatherLab/COBRA).
 
-3. **Deploy COBRA**:  
-   Extract slide-level embeddings from tile features using:
+3. **Extract COBRA Features**:  
+   The extraction scripts allow you to obtain slide‑ or patient‑level embeddings. In addition to standard command‑line arguments, you can now supply a YAML configuration file (using the `--config` flag) which overrides or specifies all extraction parameters (such as input directories, checkpoint paths, top‑k selection, etc.).
 
-   ```bash
-   python -m cobra.inference.extract_feats_slide --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir> (--checkpoint_path <checkpoint_path> --config <path_to_config> | -d)
+   **Example configuration (extract_feats_config.yml):**
+
+   ```yaml
+   extract_feats:
+    download_model: false
+    checkpoint_path: "/path/to/checkpoint.pth.tar"
+    top_k: 100
+    output_dir: "/path/to/extracted/output"
+    feat_dir: "/path/to/tile_embeddings"
+    feat_dir_a: "/path/to/tile_embeddings_aux"  # Optional, for aggregation features
+    model_name: "COBRAII"
+    patch_encoder: "Virchow2"
+    patch_encoder_a: "Virchow2"
+    h5_name: "cobra_feats.h5"
+    microns: 224
+    slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction, omit for slide-level
    ```
 
-   Or extract patient-level embeddings (which uses a slide table to group slides):
+   **Usage:**
 
-   ```bash
-   python -m cobra.inference.extract_feats_patient --feat_dir <tile_emb_dir> --output_dir <slide_emb_dir> --slide_table <slide_table_path> (--checkpoint_path <checkpoint_path> --config <path_to_config> | -d)
-   ```
+   - **Slide-level extraction** (without a slide table):
 
-> *Note:* You have the option of providing different directories for weighting and aggregation steps. The script loads primary features from `--feat_dir` and, if provided, additional features from `--feat_dir_a`. The features are matched by their coordinates before aggregation.
+     ```bash
+     python -m cobra.inference.extract_feats_slide --feat_dir "/path/to/tile_embeddings" --output_dir "/path/to/slide_embeddings" --checkpoint_path "/path/to/checkpoint.pth.tar"
+     ```
+
+     Or by providing a configuration file:
+
+     ```bash
+     python -m cobra.inference.extract_feats_slide --config /path/to/extract_feats_config.yml
+     ```
+
+   - **Patient-level extraction** (using a slide table):
+
+     ```bash
+     python -m cobra.inference.extract_feats_patient --feat_dir "/path/to/tile_embeddings" --output_dir "/path/to/patient_embeddings" --slide_table "/path/to/slide_table.csv" --checkpoint_path "/path/to/checkpoint.pth.tar"
+     ```
+
+     Or with configuration:
+
+     ```bash
+     python -m cobra.inference.extract_feats_patient --config /path/to/extract_feats_config.yml
+     ```
+
+   > *Note:* You have the option of providing different directories for weighting and aggregation steps. The script will load primary features from `--feat_dir` and, if provided, additional features from `--feat_dir_a`. Features are matched by their coordinates before aggregation.
 
 ## Using Extracted COBRA Features for Crossvalidation
 
@@ -254,7 +288,7 @@ general:
 ### Usage
 
 ```bash
-python -m cobra.ssl.pretrain -c /path/to/cobraII.yml
+python -m cobra.ssl.pretrain -c /path/to/config.yml
 ```
 
 This script sets up the SSL pretraining using your specified configuration and trains the model on tile features.
@@ -262,25 +296,12 @@ This script sets up the SSL pretraining using your specified configuration and t
 ## References
 
 - [CTransPath](https://github.com/Xiyue-Wang/TransPath)  
-  > Xiyue Wang, Sen Yang, Jun Zhang, Minghui Wang, Jing Zhang, Wei Yang, Junzhou Huang, and Xiao Han. Transformer-based unsupervised contrastive learning for histopathological image classification. *Medical Image Analysis*, 2022.
-
 - [UNI](https://github.com/mahmoodlab/uni)  
-  > Richard J Chen, Tong Ding, Ming Y Lu, Drew FK Williamson, Guillaume Jaume, Bowen Chen, Andrew Zhang, Daniel Shao, Andrew H Song, Muhammad Shaban, et al. Towards a general-purpose foundation model for computational pathology. *Nature Medicine*, 2024.
-
 - [Virchow2](https://huggingface.co/paige-ai/Virchow2)  
-  > Eric Zimmermann, Eugene Vorontsov, Julian Viret, Adam Casson, Michal Zelechowski, George Shaikovski, Neil Tenenholtz, James Hall, David Klimstra, Razik Yousfi, Thomas Fuchs, Nicolo Fusi, Siqi Liu, and Kristen Sever-son. Virchow2: Scaling self-supervised mixed magnification models in pathology, 2024.
-
 - [H-Optimus-0](https://github.com/bioptimus/releases/tree/main/models/h-optimus/v0)  
-  > Charlie Saillard, Rodolphe Jenatton, Felipe Llinares-López, Zelda Mariet, David Cahané, Eric Durand, and Jean-Philippe Vert. H-optimus-0, 2024.
-
 - [CONCH](https://github.com/mahmoodlab/CONCH)  
-  > Lu, Ming Y. and Chen, Bowen and Zhang, Andrew and Williamson, Drew F.K. and Chen, Richard J. and Ding, Tong and Le, Long Phi and Chuang, Yung-Sung and Mahmood, Faisal. A visual-language foundation model for computational pathology. *Nature Medicine*, 2024.
-
 - [STAMP](https://github.com/KatherLab/STAMP)  
-  > Omar S. M. El Nahhas, Marko van Treeck, Georg Wölflein, Michaela Unger, Marta Ligero, Tim Lenz, Sophia J. Wagner, Katherine J. Hewitt, Firas Khader, Sebastian Foersch, Daniel Truhn, and Jakob Nikolas Kather. From whole-slide image to biomarker prediction: end-to-end weakly supervised deep learning in computational pathology. *Nature Protocols*, 2024.
-
-- [MoCo-v3](https://github.com/facebookresearch/moco-v3)  
-  > Xinlei Chen*, Saining Xie*, and Kaiming He. An empirical study of training self-supervised vision transformers. arXiv preprint arXiv:2104.02057, 2021.
+- [MoCo-v3](https://github.com/facebookresearch/moco-v3)
 
 ## Citation
 

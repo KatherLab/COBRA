@@ -5,7 +5,6 @@ import h5py
 from tqdm import tqdm
 from glob import glob
 import warnings
-
 warnings.simplefilter(action="ignore", category=FutureWarning)
 from cobra.utils.load_cobra import get_cobra, get_cobraII
 import argparse
@@ -14,8 +13,7 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import json
-
-warnings.simplefilter(action="ignore", category=FutureWarning)
+import yaml
 
 def load_patch_feats(h5_path,device):
     """
@@ -369,101 +367,91 @@ def get_slide_embs(
 
 
 def main():
+    """
+    Main function for extracting slide or patient embeddings using the COBRA model.
+    This function parses command-line arguments, optionally loads configuration parameters
+    from a YAML file, and sets up the model based on the provided arguments. It supports
+    two modes of embedding extraction:
+        - Patient-level embeddings: If a slide table is provided via the '--slide_table' argument.
+        - Slide-level embeddings: If no slide table is provided.
+    The function determines whether to download model weights or load a checkpoint based on
+    the provided flags, selects the appropriate COBRA model function (COBRA I or COBRAII),
+    and configures the model's device and data type (adjusting to mixed FP16 precision if the 
+    GPU's compute capability is less than 8.0).
+    Arguments:
+            -c, --config (str): Optional path to a YAML configuration file to override command-line arguments.
+            -d, --download_model: Flag indicating whether to download model weights.
+            -w, --checkpoint_path (str): Path to the model checkpoint file.
+            -k, --top_k (int): Optional top k tiles to use for slide/patient embedding.
+            -o, --output_dir (str): Directory to save the extracted features (required).
+            -f, --feat_dir (str): Directory containing tile feature files (required).
+            -g, --feat_dir_a (str): Optional directory containing tile feature files for aggregation.
+            -m, --model_name (str): Model name (default: "COBRAII").
+            -p, --patch_encoder (str): Patch encoder name (default: "Virchow2").
+            -a, --patch_encoder_a (str): Patch encoder name used for aggregation (default: "Virchow2").
+            -e, --h5_name (str): Output HDF5 file name (default: "cobra_feats.h5").
+            -r, --microns (int): Microns per patch used for extraction (default: 224).
+            -s, --slide_table (str): Optional slide table path for patient-level extraction.
+            -u, --use_cobraI: Flag to use the COBRA I model; if not set, COBRAII is used.
+    Raises:
+            FileNotFoundError: If a checkpoint path is provided but the file does not exist.
+            ValueError: If neither a checkpoint path is provided nor the download_model flag is set.
+    Returns:
+            None
+    """
+
     parser = argparse.ArgumentParser(
-        description="Extract slide/pat embeddings using COBRA model"
+        description="Extract slide/patient embeddings using COBRA model"
     )
-    parser.add_argument(
-        "-d",
-        "--download_model",
-        action="store_true",
-        help="Flag to download model weights",
-    )
-    parser.add_argument(
-        "-w",
-        "--checkpoint_path",
-        type=str,
-        default=None,
-        help="Path to model checkpoint",
-    )
-    parser.add_argument(
-        "-k",
-        "--top_k",
-        type=int,
-        required=False,
-        default=None,
-        help="Top k tiles to use for slide/patient embedding",
-    )
-    parser.add_argument(
-        "-o",
-        "--output_dir",
-        type=str,
-        required=True,
-        help="Directory to save extracted features",
-    )
-    parser.add_argument(
-        "-f",
-        "--feat_dir",
-        type=str,
-        required=True,
-        help="Directory containing tile feature files",
-    )
-    parser.add_argument(
-        "-g",
-        "--feat_dir_a",
-        type=str,
-        required=False,
-        default=None,
-        help="Directory containing tile feature files",
-    )
-    parser.add_argument(
-        "-m",
-        "--model_name",
-        type=str,
-        required=False,
-        default="COBRAII",
-        help="model_name",
-    )
-    parser.add_argument(
-        "-p",
-        "--patch_encoder",
-        type=str,
-        required=False,
-        default="Virchow2",
-        help="patch encoder name",
-    )
-    parser.add_argument(
-        "-a",
-        "--patch_encoder_a",
-        type=str,
-        required=False,
-        default="Virchow2",
-        help="patch encoder name used for aggregation",
-    )
-    parser.add_argument(
-        "-e",
-        "--h5_name",
-        type=str,
-        required=False,
-        default="cobra_feats.h5",
-        help="File name",
-    )
-    parser.add_argument(
-        "-r",
-        "--microns",
-        type=int,
-        required=False,
-        default=224,
-        help="microns per patch used for extraction",
-    )
-    parser.add_argument(
-        "-s", "--slide_table", type=str, required=False, help="slide table path"
-    )
-    parser.add_argument(
-        "-u", "--use_cobraI", action="store_true", help="whether to use cobra I or II"
-    )
+    parser.add_argument("-c", "--config", type=str,
+                        help="Path to a YAML configuration file", default=None)
+    parser.add_argument("-d", "--download_model", action="store_true",
+                        help="Flag to download model weights")
+    parser.add_argument("-w", "--checkpoint_path", type=str, default=None,
+                        help="Path to model checkpoint")
+    parser.add_argument("-k", "--top_k", type=int, required=False, default=None,
+                        help="Top k tiles to use for slide/patient embedding")
+    parser.add_argument("-o", "--output_dir", type=str, required=True,
+                        help="Directory to save extracted features")
+    parser.add_argument("-f", "--feat_dir", type=str, required=True,
+                        help="Directory containing tile feature files")
+    parser.add_argument("-g", "--feat_dir_a", type=str, required=False, default=None,
+                        help="Directory containing tile feature files for aggregation")
+    parser.add_argument("-m", "--model_name", type=str, required=False, default="COBRAII",
+                        help="Model name")
+    parser.add_argument("-p", "--patch_encoder", type=str, required=False, default="Virchow2",
+                        help="Patch encoder name")
+    parser.add_argument("-a", "--patch_encoder_a", type=str, required=False, default="Virchow2",
+                        help="Patch encoder name used for aggregation")
+    parser.add_argument("-e", "--h5_name", type=str, required=False, default="cobra_feats.h5",
+                        help="Output HDF5 file name")
+    parser.add_argument("-r", "--microns", type=int, required=False, default=224,
+                        help="Microns per patch used for extraction")
+    parser.add_argument("-s", "--slide_table", type=str, required=False,
+                        help="Slide table path (for patient-level extraction)")
+    parser.add_argument("-u", "--use_cobraI", action="store_true",
+                        help="Whether to use COBRA I (if not set, use COBRAII)")
 
     args = parser.parse_args()
-    print(f"Arguments: {args}")
+    
+    # If a config file is provided, load parameters from the config file
+    if args.config is not None:
+        with open(args.config, "r") as f:
+            config = yaml.safe_load(f)
+        args.download_model = config.get("download_model", args.download_model)
+        args.checkpoint_path = config.get("checkpoint_path", args.checkpoint_path)
+        args.top_k = config.get("top_k", args.top_k)
+        args.output_dir = config.get("output_dir", args.output_dir)
+        args.feat_dir = config.get("feat_dir", args.feat_dir)
+        args.feat_dir_a = config.get("feat_dir_a", args.feat_dir_a)
+        args.model_name = config.get("model_name", args.model_name)
+        args.patch_encoder = config.get("patch_encoder", args.patch_encoder)
+        args.patch_encoder_a = config.get("patch_encoder_a", args.patch_encoder_a)
+        args.h5_name = config.get("h5_name", args.h5_name)
+        args.microns = config.get("microns", args.microns)
+        args.slide_table = config.get("slide_table", args.slide_table)
+    
+    print(f"Using configuration: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     cobra_func = get_cobra if args.use_cobraI else get_cobraII
     if args.download_model:

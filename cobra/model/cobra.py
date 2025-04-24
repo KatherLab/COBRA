@@ -25,6 +25,61 @@ class Embed(nn.Module):
         return self.head(x) 
 
 class Cobra(nn.Module):
+    """
+    Cobra model for processing and aggregating embeddings with attention.
+    This model utilizes separate embedding layers for different input dimensions, followed by a
+    normalization layer and a mamba-based encoder (Mamba2Enc). It then applies multi-head
+    attention using BatchedABMIL modules to compute attention maps and aggregate the input features.
+    Parameters:
+        embed_dim (int, optional):
+            Dimensionality of the embedding vectors. Default is 768.
+        input_dims (list of int, optional):
+            A list of input feature dimensions. Each feature dimension corresponds to a key in the
+            embedding module dictionary. Default is [384, 512, 1024, 1280, 1536].
+        num_heads (int, optional):
+            Number of attention heads. Each head processes a slice of the embedded features.
+            Default is 8.
+        layers (int, optional):
+            Number of layers in the Mamba2Enc encoder. Default is 2.
+        dropout (float, optional):
+            Dropout rate used throughout the model to prevent overfitting. Default is 0.25.
+        att_dim (int, optional):
+            The hidden dimensionality for the attention branch (BatchedABMIL) per attention head.
+            Default is 96.
+        d_state (int, optional):
+            Dimensionality of the internal state in the Mamba2Enc encoder. Default is 128.
+    Methods:
+        forward(x, multi_fm_mode=False, fm_idx=None, get_attention=False):
+            Forward pass through the Cobra network.
+            Args:
+                x (Tensor or list of Tensors):
+                    Input tensor if single feature map; list of tensors if multi_fm_mode is True.
+                    Each tensor should have a shape corresponding to the respective key in the embedding module.
+                multi_fm_mode (bool, optional):
+                    Flag to indicate that multiple feature maps (different modalities) are provided.
+                    Default is False.
+                fm_idx (int, optional):
+                    In multi_fm_mode, if provided, selects a specific feature map index for feature aggregation.
+                    Default is None.
+                get_attention (bool, optional):
+                    If True, the method returns the computed attention matrix rather than the aggregated features.
+                    Default is False.
+            Returns:
+                Tensor:
+                    If get_attention is True, returns the attention matrix computed from the input.
+                    Otherwise, returns the aggregated feature representation obtained after applying the attention mechanism.
+                    For multi_fm_mode with a provided fm_idx, returns the features corresponding to the selected modality.
+            Raises:
+                AssertionError:
+                    If the dimensions of the embedded features do not match the expected sizes during
+                    concatenation or aggregation, assertions will be raised to signal the discrepancy.
+    Example:
+        >>> model = Cobra()
+        >>> # Processing random input
+        >>> x = torch.randn(1, 100, 768)  # batch size: 1, sequence length: 100, feature dimension: 768
+        >>> features = model(x)
+    """
+
     def __init__(self,embed_dim=768,input_dims=[384,512,1024,1280,1536], num_heads=8,layers=2,dropout=0.25,att_dim=96,d_state=128):
         super().__init__()
         
@@ -66,6 +121,9 @@ class Cobra(nn.Module):
         else: 
             A = self.attn[0](h)
         
+        if get_attention:
+            return A
+        
         if multi_fm_mode:
             if fm_idx:
                 feats = torch.bmm(A,x[fm_idx]).squeeze(0).squeeze(0)
@@ -77,6 +135,4 @@ class Cobra(nn.Module):
         else:
             feats = torch.bmm(A,x).squeeze(1)
         
-        if get_attention:
-            return feats, A
         return feats

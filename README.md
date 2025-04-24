@@ -69,18 +69,19 @@ To deploy the COBRA model, follow these steps:
    **Example configuration (extract_feats_config.yml):**
 
    ```yaml
-   download_model: false
-   checkpoint_path: "/path/to/checkpoint.pth.tar"
-   top_k: 100
-   output_dir: "/path/to/extracted/output"
-   feat_dir: "/path/to/tile_embeddings"
-   feat_dir_a: "/path/to/tile_embeddings_aux"  # Optional, for aggregation features
-   model_name: "COBRAII"
-   patch_encoder: "Virchow2"
-   patch_encoder_a: "Virchow2"
-   h5_name: "cobra_feats.h5"
-   microns: 224
-   slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction, omit for slide-level
+   extract_feats:
+     download_model: false
+     checkpoint_path: "/path/to/checkpoint.pth.tar"
+     top_k: 100
+     output_dir: "/path/to/extracted/output"
+     feat_dir: "/path/to/tile_embeddings"
+     feat_dir_a: "/path/to/tile_embeddings_aux"  # Optional, for aggregation features
+     model_name: "COBRAII"
+     patch_encoder: "Virchow2"
+     patch_encoder_a: "Virchow2"
+     h5_name: "cobra_feats.h5"
+     microns: 224
+     slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction, omit for slide-level
    ```
 
    **Usage:**

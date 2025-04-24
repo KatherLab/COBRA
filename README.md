@@ -121,13 +121,10 @@ python -m cobra.inference.extract_feats_patient --feat_dir <tile_emb_dir> --outp
 If you find our work useful in your research or if you use parts of this code please consider citing our [preprint](https://arxiv.org/abs/2411.13623):
 
 ```bibtex
-@misc{cobra,
-      title={Unsupervised Foundation Model-Agnostic Slide-Level Representation Learning}, 
-      author={Tim Lenz* and Peter Neidlinger* and Marta Ligero and Georg Wölflein and Marko van Treeck and Jakob Nikolas Kather},
-      year={2024},
-      eprint={2411.13623},
-      archivePrefix={arXiv},
-      primaryClass={cs.CV},
-      url={https://arxiv.org/abs/2411.13623}, 
+@inproceedings{cobra,
+  title     = {Unsupervised Foundation Model-Agnostic Slide-Level Representation Learning},
+  author    = {T. Lenz* and Peter Neidlinger* and Marta Ligero and Georg Wölflein and Marko van Treeck and Jakob Nikolas Kather},
+  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year      = {2025}
 }
 ```

@@ -438,6 +438,7 @@ def main():
     if args.config is not None:
         with open(args.config, "r") as f:
             config = yaml.safe_load(f)
+        config = config.get("extract_feats", {})
         args.download_model = config.get("download_model", args.download_model)
         args.checkpoint_path = config.get("checkpoint_path", args.checkpoint_path)
         args.top_k = config.get("top_k", args.top_k)

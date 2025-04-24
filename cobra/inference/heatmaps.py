@@ -5,15 +5,13 @@ from os.path import exists
 from tqdm import tqdm 
 import argparse
 import h5py
-import json
 import numpy as np
-import zipfile
 import h5py
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
-from pathlib import Path
 import openslide
+import yaml
 
 from cobra.utils.load_cobra import get_cobraII
 from cobra.utils.get_mpp import get_slide_mpp_
@@ -143,18 +141,42 @@ def main(device="cuda"):
     Args:
         device (str): Device to perform computations on (e.g., "cuda" or "cpu").
     """
-    parser = argparse.ArgumentParser(description="Generate heatmaps for whole slide images using the COBRA model.")
+    parser = argparse.ArgumentParser(
+        description="Generate heatmaps for whole slide images using the COBRA model."
+    )
+    parser.add_argument("-c", "--config", type=str, help="Path to configuration YAML file", default=None)
+    # Commandline arguments (will be overridden if --config is provided)
     parser.add_argument("-f", "--feat_dir", type=str, default="/path/to/features", 
-                        required=False, help="Directory containing tile feature files.")
-    parser.add_argument("-s", "--wsi_dir", type=str, default="/path/to/wsi", required=False, help="Directory containing WSI files.")
-    parser.add_argument("-w", "--checkpoint_path", type=str, default="/path/to/checkpoint.pth.tar", help="Path to the model checkpoint.")
-    parser.add_argument("-r", "--microns", type=int, required=False, default=112, help="Microns per patch used for extraction.")
-    parser.add_argument("-p", "--patch_size", type=int, required=False, default=224, help="Patch size used for extraction.")
-    parser.add_argument("-o", "--output_dir", type=str, required=False, default="/path/to/output", help="Directory to save the generated heatmaps.")
-    parser.add_argument("-v", "--stamp_version", type=int, required=False, default=2, help="Stamp version, the patch features were extracted with -> difference is mostly coordinate format")
+                        help="Directory containing tile feature files.")
+    parser.add_argument("-s", "--wsi_dir", type=str, default="/path/to/wsi", 
+                        help="Directory containing WSI files.")
+    parser.add_argument("-w", "--checkpoint_path", type=str, default="/path/to/checkpoint.pth.tar", 
+                        help="Path to the model checkpoint.")
+    parser.add_argument("-r", "--microns", type=int, default=112, 
+                        help="Microns per patch used for extraction.")
+    parser.add_argument("-p", "--patch_size", type=int, default=224, 
+                        help="Patch size used for extraction.")
+    parser.add_argument("-o", "--output_dir", type=str, default="/path/to/output", 
+                        help="Directory to save the generated heatmaps.")
+    parser.add_argument("-v", "--stamp_version", type=int, default=2, 
+                        help="Stamp version that was used for extraction.")
     
     args = parser.parse_args()
-    print(f"Arguments: {args}")
+    
+    # If a config file is provided, load and override the defaults
+    if args.config is not None:
+        with open(args.config, "r") as f:
+            config = yaml.safe_load(f)
+        config = config.get("heatmap", {})
+        args.feat_dir = config.get("feat_dir", args.feat_dir)
+        args.wsi_dir = config.get("wsi_dir", args.wsi_dir)
+        args.checkpoint_path = config.get("checkpoint_path", args.checkpoint_path)
+        args.microns = config.get("microns", args.microns)
+        args.patch_size = config.get("patch_size", args.patch_size)
+        args.output_dir = config.get("output_dir", args.output_dir)
+        args.stamp_version = config.get("stamp_version", args.stamp_version)
+    
+    print(f"Using configuration: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     model = get_cobraII(download_weights=(not exists(args.checkpoint_path)), checkpoint_path=args.checkpoint_path)
@@ -169,7 +191,12 @@ def main(device="cuda"):
             continue
         if not exists(args.output_dir):
             os.makedirs(args.output_dir, exist_ok=True)
-        create_heatmap(model, slide_name, wsi_path, feat_path, args.output_dir, microns_per_patch=args.microns, patch_size=args.patch_size, scale_factor=8, device=device, stamp_v=args.stamp_version)
+        create_heatmap(model, slide_name, wsi_path, feat_path, args.output_dir,
+                       microns_per_patch=args.microns,
+                       patch_size=args.patch_size,
+                       scale_factor=8,
+                       device=device,
+                       stamp_v=args.stamp_version)
 
 if __name__ == "__main__":
     main()

@@ -15,12 +15,51 @@ from tqdm import tqdm
 
 
 def load_config(config_path):
+    """
+    Load configuration from a YAML file.
+    This function opens the file at the given path, reads its contents, and loads the configuration 
+    using yaml.safe_load. The configuration is returned as a Python dictionary.
+    Parameters:
+        config_path (str): The file path to the YAML configuration file.
+    Returns:
+        dict: A dictionary representing the configuration settings loaded from the YAML file.
+    Raises:
+        FileNotFoundError: If the file at config_path does not exist.
+        yaml.YAMLError: If there is an error parsing the YAML file.
+    """
+
     with open(config_path, "r") as file:
         cfg = yaml.safe_load(file)
     return cfg
 
 
 def main(config_path):
+    """
+    Main function for deploying evaluation of the pre-trained models on test data.
+    This function performs the following steps:
+    1. Loads the deployment configuration from the specified config file.
+    2. Reads patient data from a CSV file and extracts target labels and patient identifiers.
+    3. Loads the label encoder from the training phase and transforms target labels.
+    4. Retrieves patient IDs from an H5 file and identifies common patients present in both CSV and H5 files.
+    5. Initializes a dataset and dataloader for test data.
+    6. Iterates over each cross-validation fold:
+        - Checks if a model checkpoint exists for the fold.
+        - Loads the trained model and sets it to evaluation mode.
+        - Processes the test dataset to compute predictions, losses, and transforms predicted labels back to the original label space.
+        - Aggregates predictions and computes the AUROC for the fold.
+    7. Calculates the average AUROC over all folds.
+    8. Saves the detailed per-patient predictions and AUROC scores for each fold (and average) as CSV files in the specified output folder.
+    Parameters:
+         config_path (str): The file path to the configuration file containing deployment settings, including paths to CSV, H5, label encoder,
+                                  output folder, and hyperparameters for the model.
+    Returns:
+         None
+    Notes:
+         - The function assumes that the CSV file contains columns for patient IDs, target labels, and that the H5 file keys correspond to patient IDs.
+         - The models are loaded from checkpoints for each cross-validation fold as specified in the configuration.
+         - The function uses torch.inference_mode for inference and computes softmax probabilities on the model outputs.
+    """
+
     cfg = load_config(config_path)["deploy"]
     data = pd.read_csv(cfg["csv_path"])
     targets = data[cfg["target_column"]].values

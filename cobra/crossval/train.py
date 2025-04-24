@@ -103,6 +103,40 @@ def load_config(config_path):
 
 
 def main(config_path):
+    """
+    Main function to orchestrate the training and cross-validation process for the MLP model.
+
+    This function performs the following operations:
+        - Loads the training configuration from a provided YAML file.
+        - Ensures that the output folder exists and saves a copy of the configuration.
+        - Reads input data from a CSV or Excel file, while verifying that the file format is supported.
+        - Cleans the data by removing rows with missing target values.
+        - Encodes target labels using a LabelEncoder and saves the encoder for later use.
+        - Loads patient IDs from an H5 file and compares them with those in the CSV, issuing warnings if there are any mismatches.
+        - Filters the dataset to include only common patient IDs present in both files.
+        - Sets up stratified K-fold cross-validation, ensuring balanced splits based on the target labels.
+        - For each fold:
+                - Splits the data into training/validation and test sets.
+                - Constructs PyTorch DataLoaders for training, validation, and testing.
+                - Instantiates an MLP model with parameters specified in the configuration.
+                - Trains the model using PyTorch Lightning, with callbacks for model checkpointing and early stopping.
+                - Evaluates the model on the test set and logs the test AUROC metric.
+                - Stores detailed test results (including patient IDs, predictions, ground truth, and loss) as CSV files.
+        - Aggregates the AUROC scores across all folds and saves the summary to disk.
+
+    Parameters:
+            config_path (str): The file path to the YAML configuration file containing training settings, data paths, and hyperparameters.
+
+    Raises:
+            ValueError: If the input data file format is unsupported (i.e., not a CSV or XLSX file).
+
+    Returns:
+            None
+
+    Side Effects:
+            - Creates directories and files (config.yaml, label_encoder.pkl, best_model.ckpt, test results CSVs, and fold AUROC CSV) in the specified output folder.
+            - Logs progress and warnings via printed messages and the warnings module.
+    """
     cfg = load_config(config_path)["train"]
     if not os.path.exists(cfg["output_folder"]):
         os.makedirs(cfg["output_folder"])

@@ -8,7 +8,6 @@ import warnings
 
 warnings.simplefilter(action="ignore", category=FutureWarning)
 from cobra.utils.load_cobra import get_cobra, get_cobraII
-from cobra.model.cobra import Cobra
 import argparse
 
 from pathlib import Path
@@ -19,6 +18,15 @@ import json
 warnings.simplefilter(action="ignore", category=FutureWarning)
 
 def load_patch_feats(h5_path,device):
+    """
+    Load patch features from an HDF5 file.
+    Args:
+        h5_path (str): Path to the HDF5 file containing patch features.
+        device (str): Device to load the features onto (e.g., "cuda" or "cpu").
+    Returns:                                
+        feats (torch.Tensor): Loaded patch features as a PyTorch tensor.
+        coords (np.ndarray): Coordinates associated with the patch features.
+    """
     if not os.path.exists(h5_path):
         tqdm.write(f"File {h5_path} does not exist, skipping")
         return None
@@ -26,11 +34,31 @@ def load_patch_feats(h5_path,device):
         feats = f["feats"][:]
         feats = torch.tensor(feats).to(device)
         coords = np.array(f["coords"][:])
-        #coords = torch.tensor(coords).to(device)
     return feats, coords
 
 def match_coords(feats_w,feats_a,coords_w,coords_a):
+    """
+    Match and extract features whose corresponding coordinates are identical in two sets.
 
+    This function sorts the given coordinate arrays (and their associated feature arrays) in lexicographical order.
+    It then finds the indices where coordinates in one set also exist in the other, and returns the corresponding
+    features from both sets. Ensure that both arrays have matching features for the overlapping coordinates; otherwise,
+    an AssertionError is raised.
+
+    Parameters:
+        feats_w (np.ndarray): Array of features corresponding to the first set of coordinates.
+        feats_a (np.ndarray): Array of features corresponding to the second set of coordinates.
+        coords_w (np.ndarray): Array of coordinates for feats_w with shape (N, 2) where each row is [x, y].
+        coords_a (np.ndarray): Array of coordinates for feats_a with shape (M, 2) where each row is [x, y].
+
+    Returns:
+        tuple: A tuple (matched_feats_w, matched_feats_a) where:
+            matched_feats_w (np.ndarray): Features from the first set corresponding to coordinates found in both arrays.
+            matched_feats_a (np.ndarray): Features from the second set corresponding to coordinates found in both arrays.
+
+    Raises:
+        AssertionError: If no matching coordinates are found or if the number of matches in both sets does not match.
+    """
     # Sort coordinates and features based on sorted indices
     sorted_indices_w = np.lexsort((coords_w[:, 1], coords_w[:, 0]))
     sorted_indices_a = np.lexsort((coords_a[:, 1], coords_a[:, 0]))
@@ -48,6 +76,30 @@ def match_coords(feats_w,feats_a,coords_w,coords_a):
     return feats_w[idx_w], feats_a[idx_a]
 
 def get_cobra_feats(model,patch_feats_w,patch_feats_a,top_k=None):
+    """
+    Compute COBRA features by aggregating patch features using attention scores from the model.
+    This function takes patch features and processes them with the given model to extract
+    attention scores. If a top_k value is provided, it selects the top_k patches based on
+    the attention scores, applies a softmax weighting over these scores, and computes a weighted
+    sum of the corresponding patch features. Otherwise, it directly aggregates all patch
+    features with the raw attention scores.
+    Parameters:
+        model (torch.nn.Module): The neural network model used to compute attention scores.
+                                 It should accept patch_feats_w as input and support a "get_attention"
+                                 keyword argument.
+        patch_feats_w (torch.Tensor): The input patch features that are processed by the model to obtain
+                                      attention scores.
+        patch_feats_a (torch.Tensor): The patch features used for the final feature aggregation.
+        top_k (int, optional): The number of top patches (based on attention score) to use for feature
+                               aggregation. If specified, only the top_k patches are aggregated; if not,
+                               all patches are used.
+    Returns:
+        torch.Tensor: The aggregated COBRA features as a 1D tensor (after squeezing the unnecessary dimensions).
+    Notes:
+        - The function runs within torch.inference_mode() to disable gradient calculations.
+        - When top_k is used, the function ensures that top_k does not exceed the total number of patches.
+        - The attention weights are normalized using softmax before being used for aggregation.
+    """
     with torch.inference_mode():
         A = model(patch_feats_w,get_attention=True)
         # A.shape: (1,1,num_patches)
@@ -78,7 +130,44 @@ def get_pat_embs(
     weighting_fm="Virchow2",
     aggregation_fm="Virchow2",
     microns=224,
-):
+    ):
+    """
+    Extract patient-level features from slide-level feature files and save them into an HDF5 file.
+    This function reads a slide table CSV file that contains slide information grouped by patient.
+    For each patient, it iterates over all associated slide entries, loads the corresponding features
+    from the specified directories (one for weighting features and optionally one for an alternative set),
+    matches coordinates between the two sets of features, and aggregates them. The extracted and
+    aggregated features are then passed through a provided model to obtain patient-level embeddings.
+    Finally, the function saves the computed features and metadata (including extractor settings and parameters)
+    to an HDF5 file and a JSON metadata file in the output directory.
+    Note:
+        - The function skips processing if the output file already exists and its size is greater than 800 bytes.
+        - If feature extraction for a particular slide fails (i.e., features are None), that slide is skipped.
+        - The function asserts that the concatenated feature tensors have the expected dimensions before proceeding.
+    Parameters:
+        model: The model used to compute the final patient-level features.
+        output_dir (str): Directory where the output files (HDF5 and metadata JSON) will be saved.
+        feat_dir_w (str): Directory containing the weighting feature H5 files for each slide.
+        feat_dir_a (str, optional): Directory containing the alternative feature H5 files. If None, weighting features are used.
+        output_file (str, optional): Name of the output HDF5 file. Default is "cobra-feats.h5".
+        model_name (str, optional): Name of the model/extractor used. Default is "COBRAII".
+        slide_table_path (str): Path to the CSV file containing slide information, including patient IDs and filenames.
+        device (str, optional): Device to use for computation (e.g., "cuda" or "cpu"). Default is "cuda".
+        dtype (torch.dtype, optional): Torch data type to which features are cast. Default is torch.float32.
+        top_k (int, optional): If provided, only the top_k features will be selected during feature aggregation.
+        weighting_fm (str, optional): Descriptor for the weighting feature method used. Default is "Virchow2".
+        aggregation_fm (str, optional): Descriptor for the aggregation feature method used. Default is "Virchow2".
+        microns (int, optional): Scale parameter indicating the micron size of the features. Default is 224.
+    Behavior:
+        - Loads the slide table and groups slides by patient.
+        - Iterates over each patient, loading and optionally matching features from the provided directories.
+        - Aggregates slide features into a 3D tensor and computes patient-level features using the model.
+        - Saves the results in a specified HDF5 file under the given output directory.
+        - Writes metadata about the extraction process to a metadata.json file.
+    Returns:
+        None
+    """
+    
     slide_table = pd.read_csv(slide_table_path)
     patient_groups = slide_table.groupby("PATIENT")
     pat_dict = {}
@@ -116,7 +205,6 @@ def get_pat_embs(
         if all_feats_list_w:
             all_feats_cat_w = torch.cat(all_feats_list_w, dim=0).unsqueeze(0)
             all_feats_cat_a = torch.cat(all_feats_list_a, dim=0).unsqueeze(0)
-            #with torch.inference_mode():
             assert all_feats_cat_w.ndim == 3, (
                 f"Expected 3D tensor, got {all_feats_cat_w.ndim}"
             )
@@ -149,7 +237,6 @@ def get_pat_embs(
         f.attrs["microns"] = microns
 
 
-
     tqdm.write(f"Finished extraction, saved to {output_file}")
     metadata = {
         "extractor": model_name,
@@ -163,7 +250,7 @@ def get_pat_embs(
         json.dump(metadata, json_file, indent=4)
 
 def get_slide_embs(
-    model,
+        model,
     output_dir,
     feat_dir_w,
     feat_dir_a=None,
@@ -176,6 +263,49 @@ def get_slide_embs(
     aggregation_fm="Virchow2",
     microns=224,
 ):
+    """
+    Generates slide-level features from tile embeddings and saves them to an HDF5 file along with metadata.
+    This function processes two sets of tile embeddings stored in separate directories (or a single directory if an alternative is not provided),
+    computes slide-level features by aggregating weighted and auxiliary tile-level embeddings using a given model, and saves the results in an HDF5
+    file along with a corresponding metadata JSON file.
+    Parameters:
+        model: 
+            The feature extraction model used to aggregate tile embeddings into slide-level features.
+        output_dir (str):
+            The directory where the output files (HDF5 file and metadata JSON) will be saved.
+        feat_dir_w (str):
+            The directory containing HDF5 files with the primary (weighted) tile embeddings.
+        feat_dir_a (str, optional):
+            The directory containing HDF5 files with auxiliary tile embeddings. If not provided, tile_emb_paths_a will be fetched from feat_dir_w.
+        output_file (str, optional):
+            The name of the output HDF5 file where aggregated slide features will be saved. Default is "cobra-feats.h5".
+        model_name (str, optional):
+            A string identifier for the model/extractor used; saved in metadata and dataset attributes. Default is "COBRAII".
+        device (str, optional):
+            The computational device (e.g., "cuda" or "cpu") on which tensors should be loaded and processed. Note that mamba requires a NVIDIA gpu to function.
+        dtype (torch.dtype, optional):
+            The data type to which the tensor embeddings are cast prior to feature aggregation. Default is torch.float32.
+        top_k (int, optional):
+            An optional parameter to select the top-k features during aggregation. When None, no top-k filtering is applied.
+        weighting_fm (str, optional):
+            A string representing the weighting function or method used in the feature calculation. Default is "Virchow2".
+        aggregation_fm (str, optional):
+            A string representing the aggregation method used to compute slide-level features from tile embeddings. Default is "Virchow2".
+        microns (int, optional):
+            An integer parameter (e.g., representing physical scale/size) that is stored in the metadata. Default is 224.
+    Behavior:
+        - Searches for HDF5 files in the provided directories using a recursive glob pattern.
+        - Loads tile-level features from each HDF5 file using an external function (load_patch_feats).
+        - Ensures that corresponding weighted and auxiliary files contain the same number of tiles.
+        - Applies the model to compute slide-level features by aggregating tile embeddings (using get_cobra_feats).
+        - Creates and writes a dataset for each slide to the output HDF5 file, with attributes recording extraction details.
+        - Saves a metadata JSON file containing extractor and processing parameters.
+        - Outputs progress using tqdm.
+    Raises:
+        AssertionError:
+            If the number of files in feat_dir_w and feat_dir_a (if provided) do not match, or if the shapes of the embeddings do not conform to expectations.
+    """
+
     slide_dict = {}
 
     tile_emb_paths_w = glob(f"{feat_dir_w}/**/*.h5", recursive=True)
@@ -369,6 +499,7 @@ def main():
         dtype = torch.float32
 
     if args.slide_table:
+        # patient level embeddings
         get_pat_embs(
             model,
             args.output_dir,
@@ -385,6 +516,7 @@ def main():
             microns=args.microns,
         )
     else:
+        # slide level embeddings
         get_slide_embs(
             model,
             args.output_dir,

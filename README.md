@@ -1,10 +1,13 @@
 # COntrastive Biomarker Representation Alignment (COBRA)
 
-[![Paper-Arxiv](https://img.shields.io/badge/Paper-Arxiv-red)](https://arxiv.org/abs/2411.13623)
-[![Paper-Cite](https://img.shields.io/badge/Paper-Cite-blue)](#citation)
-[![Model-Huggingface](https://img.shields.io/badge/Model-Huggingface-yellow)](https://huggingface.co/KatherLab/COBRA)
+
+<!-- [Preprint](https://arxiv.org/abs/2411.13623) | [Download Models](https://huggingface.co/KatherLab/COBRA) | [Cite](#citation) -->
+<a href='https://arxiv.org/abs/2411.13623'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a> 
+<a href='#citation'><img src='https://img.shields.io/badge/Paper-Cite-blue'></a>
+<a href='https://huggingface.co/KatherLab/COBRA'><img src='https://img.shields.io/badge/Model-Huggingface-yellow'></a>
 
 ## Abstract
+
 
 > Representation learning of pathology whole-slide images (WSIs) has primarily relied on weak supervision with Multiple Instance Learning (MIL). This approach leads to slide representations highly tailored to a specific clinical task. Self-supervised learning (SSL) has been successfully applied to train histopathology foundation models (FMs) for patch embedding generation. However, generating patient or slide level embeddings remains challenging. Existing approaches for slide representation learning extend the principles of SSL from patch level learning to entire slides by aligning different augmentations of the slide or by utilizing multimodal data. By integrating tile embeddings from multiple FMs, we propose a new single modality SSL method in feature space that generates useful slide representations. Our contrastive pretraining strategy, called COBRA, employs multiple FMs and an architecture based on Mamba-2. COBRA exceeds performance of state-of-the-art slide encoders on several public cohorts by at least +4.4% AUC, despite only being pretrained on a limited set of WSIs. Additionally, COBRA is readily compatible at inference time with previously unseen feature extractors.
 
@@ -30,6 +33,7 @@ uv sync --no-build-isolation
 ```
 
 If there are any **issues**, consider also installing hatchling and editables:
+
 
 ```bash
 uv pip install hatchling editables

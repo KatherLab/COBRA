@@ -309,7 +309,7 @@ This script sets up the SSL pretraining using your specified configuration and t
 
 ## Citation
 
-If you find our work useful, please consider citing our preprint:
+If you find our work useful in your research or if you use parts of this code please consider citing our paper:
 
 ```bibtex
 @inproceedings{cobra,

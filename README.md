@@ -6,6 +6,19 @@
 <a href='#citation'><img src='https://img.shields.io/badge/Paper-Cite-blue'></a>
 <a href='https://huggingface.co/KatherLab/COBRA'><img src='https://img.shields.io/badge/Model-Huggingface-yellow'></a>
 
+## Table of Contents
+
+- [Abstract](#abstract)
+- [News](#news)
+- [Installation](#installation)
+- [WSI Level Embeddings](#wsi-level-embeddings)
+- [Extract COBRA Features](#extract-cobra-features)
+- [Using Extracted COBRA Features for Crossvalidation](#using-extracted-cobra-features-for-crossvalidation)
+- [Generating Heatmaps](#generating-heatmaps)
+- [Pretraining via Self-Supervised Learning (SSL)](#pretraining-via-self-supervised-learning-ssl)
+- [References](#references)
+- [Citation](#citation)
+
 ## Abstract
 
 

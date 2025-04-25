@@ -11,11 +11,10 @@
 - [Abstract](#abstract)
 - [News](#news)
 - [Installation](#installation)
-- [WSI Level Embeddings](#wsi-level-embeddings)
-- [Extract COBRA Features](#extract-cobra-features)
-- [Using Extracted COBRA Features for Crossvalidation](#using-extracted-cobra-features-for-crossvalidation)
-- [Generating Heatmaps](#generating-heatmaps)
-- [Pretraining via Self-Supervised Learning (SSL)](#pretraining-via-self-supervised-learning-ssl)
+- [Feature Extraction](#feature-extraction)
+- [Crossvalidation](#crossvalidation)
+- [Heatmaps](#generating-heatmaps)
+- [Pretraining](#pretraining)
 - [References](#references)
 - [Citation](#citation)
 
@@ -64,9 +63,9 @@ For Debian or derivatives:
 apt install python3.11-dev
 ```
 
-## WSI Level Embeddings
+## Feature extraction
 
-To deploy the COBRA model, follow these steps:
+To deploy the COBRA model to extract WSI-level or even patient-level embeddings, follow these steps:
 
 1. **Prepare your data**: Extract tile embeddings with one or more patch encoders of your choice using [STAMP](https://github.com/KatherLab/STAMP).  
     - **COBRA I:**
@@ -129,7 +128,7 @@ To deploy the COBRA model, follow these steps:
 
    > *Note:* You have the option of providing different directories for weighting and aggregation steps. The script will load primary features from `--feat_dir` and, if provided, additional features from `--feat_dir_a`. Features are matched by their coordinates before aggregation.
 
-## Using Extracted COBRA Features for Crossvalidation
+## Crossvalidation
 
 After extracting the COBRA features (either at the slide or patient level), you can run crossvalidation to train and evaluate a downstream MLP classifier. The crossvalidation workflow is managed by two main scripts.
 

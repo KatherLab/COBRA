@@ -250,9 +250,10 @@ python -m cobra.inference.heatmaps \
     -v 2
 ```
 
-## Pretraining via Self-Supervised Learning (SSL)
+## Pretraining
 
-COBRA also supports pretraining using a self-supervised learning (SSL) framework adapted from MoCo-v3.
+COBRA is pretrained with constrastive self-supervised learning based on [MoCo-v3](https://github.com/facebookresearch/moco-v3).
+The code to pretrain COBRA is explained in the following.
 
 ### What It Does
 - Pretrains a COBRA-based model using tile-level features.

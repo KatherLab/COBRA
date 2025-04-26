@@ -38,39 +38,31 @@ def match_coords(feats_w,feats_a,coords_w,coords_a):
     """
     Match and extract features whose corresponding coordinates are identical in two sets.
 
-    This function sorts the given coordinate arrays (and their associated feature arrays) in lexicographical order.
-    It then finds the indices where coordinates in one set also exist in the other, and returns the corresponding
-    features from both sets. Ensure that both arrays have matching features for the overlapping coordinates; otherwise,
-    an AssertionError is raised.
+    It uses np.intersect1d to compute the intersection (in sorted order)
+    of the coordinate arrays, and returns the features accordingly.
 
     Parameters:
-        feats_w (np.ndarray): Array of features corresponding to the first set of coordinates.
-        feats_a (np.ndarray): Array of features corresponding to the second set of coordinates.
-        coords_w (np.ndarray): Array of coordinates for feats_w with shape (N, 2) where each row is [x, y].
-        coords_a (np.ndarray): Array of coordinates for feats_a with shape (M, 2) where each row is [x, y].
-
+        feats_w (np.ndarray): Feature array for weighted patches.
+        feats_a (np.ndarray): Feature array for auxiliary patches.
+        coords_w (np.ndarray): Coordinates for feats_w with shape (N, D).
+        coords_a (np.ndarray): Coordinates for feats_a with shape (M, D).
+    
     Returns:
-        tuple: A tuple (matched_feats_w, matched_feats_a) where:
-            matched_feats_w (np.ndarray): Features from the first set corresponding to coordinates found in both arrays.
-            matched_feats_a (np.ndarray): Features from the second set corresponding to coordinates found in both arrays.
-
+        tuple: (matched_feats_w, matched_feats_a) where the i-th entry in both arrays corresponds 
+               to the same common coordinate.
+    
     Raises:
-        AssertionError: If no matching coordinates are found or if the number of matches in both sets does not match.
+        ValueError: If no common coordinates are found.
     """
-    # Sort coordinates and features based on sorted indices
-    sorted_indices_w = np.lexsort((coords_w[:, 1], coords_w[:, 0]))
-    sorted_indices_a = np.lexsort((coords_a[:, 1], coords_a[:, 0]))
+    # Create structured views so entire rows can be compared as single elements.
+    dt = np.dtype((np.void, coords_w.dtype.itemsize * coords_w.shape[1]))
+    coords_w_view = np.ascontiguousarray(coords_w).view(dt).ravel()
+    coords_a_view = np.ascontiguousarray(coords_a).view(dt).ravel()
 
-    coords_w = coords_w[sorted_indices_w]
-    coords_a = coords_a[sorted_indices_a]
-    feats_w = feats_w[sorted_indices_w]
-    feats_a = feats_a[sorted_indices_a]
-
-    # Find matching indices after sorting
-    idx_w = np.array([i for i, coord in enumerate(coords_w) if any(np.all(coord == coords_a, axis=1))])
-    idx_a = np.array([i for i, coord in enumerate(coords_a) if any(np.all(coord == coords_w, axis=1))])
-    assert len(idx_w) == len(idx_a), "Lengths do not match"
-    assert len(idx_w) > 0, "No matching coordinates found"
+    common, idx_w, idx_a = np.intersect1d(coords_w_view, coords_a_view, return_indices=True)
+    if len(common) == 0:
+        raise ValueError("No matching coordinates found")
+    
     return feats_w[idx_w], feats_a[idx_a]
 
 def get_cobra_feats(model,patch_feats_w,patch_feats_a,top_k=None):
@@ -128,53 +120,28 @@ def get_pat_embs(
     weighting_fm="Virchow2",
     aggregation_fm="Virchow2",
     microns=224,
-    ):
+):
     """
     Extract patient-level features from slide-level feature files and save them into an HDF5 file.
-    This function reads a slide table CSV file that contains slide information grouped by patient.
-    For each patient, it iterates over all associated slide entries, loads the corresponding features
-    from the specified directories (one for weighting features and optionally one for an alternative set),
-    matches coordinates between the two sets of features, and aggregates them. The extracted and
-    aggregated features are then passed through a provided model to obtain patient-level embeddings.
-    Finally, the function saves the computed features and metadata (including extractor settings and parameters)
-    to an HDF5 file and a JSON metadata file in the output directory.
-    Note:
-        - The function skips processing if the output file already exists and its size is greater than 800 bytes.
-        - If feature extraction for a particular slide fails (i.e., features are None), that slide is skipped.
-        - The function asserts that the concatenated feature tensors have the expected dimensions before proceeding.
-    Parameters:
-        model: The model used to compute the final patient-level features.
-        output_dir (str): Directory where the output files (HDF5 and metadata JSON) will be saved.
-        feat_dir_w (str): Directory containing the weighting feature H5 files for each slide.
-        feat_dir_a (str, optional): Directory containing the alternative feature H5 files. If None, weighting features are used.
-        output_file (str, optional): Name of the output HDF5 file. Default is "cobra-feats.h5".
-        model_name (str, optional): Name of the model/extractor used. Default is "COBRAII".
-        slide_table_path (str): Path to the CSV file containing slide information, including patient IDs and filenames.
-        device (str, optional): Device to use for computation (e.g., "cuda" or "cpu"). Default is "cuda".
-        dtype (torch.dtype, optional): Torch data type to which features are cast. Default is torch.float32.
-        top_k (int, optional): If provided, only the top_k features will be selected during feature aggregation.
-        weighting_fm (str, optional): Descriptor for the weighting feature method used. Default is "Virchow2".
-        aggregation_fm (str, optional): Descriptor for the aggregation feature method used. Default is "Virchow2".
-        microns (int, optional): Scale parameter indicating the micron size of the features. Default is 224.
-    Behavior:
-        - Loads the slide table and groups slides by patient.
-        - Iterates over each patient, loading and optionally matching features from the provided directories.
-        - Aggregates slide features into a 3D tensor and computes patient-level features using the model.
-        - Saves the results in a specified HDF5 file under the given output directory.
-        - Writes metadata about the extraction process to a metadata.json file.
-    Returns:
-        None
+    Loads a slide table CSV file grouping slides by patient, then for each patient loads features from
+    the provided directories and aggregates them. Optionally, match_coords is applied only if an alternative
+    feature directory is provided and weighting_fm != aggregation_fm.
     """
-    
     slide_table = pd.read_csv(slide_table_path)
     patient_groups = slide_table.groupby("PATIENT")
     pat_dict = {}
 
     output_file = os.path.join(output_dir, output_file)
-
     if os.path.exists(output_file) and os.path.getsize(output_file) > 800:
         tqdm.write(f"Output file {output_file} already exists, skipping")
         return
+
+    # Determine if we need to run match_coords.
+    do_match = (feat_dir_a is not None) and (weighting_fm != aggregation_fm)
+    if do_match:
+        print("Using match_coords for patient-level extraction (weighting_fm != aggregation_fm).")
+    else:
+        print("Skipping match_coords for patient-level extraction (using identical features or no auxiliary features).")
 
     for patient_id, group in tqdm(patient_groups, leave=False):
         all_feats_list_w = []
@@ -186,16 +153,21 @@ def get_pat_embs(
             feats_w, coords_w = load_patch_feats(h5_path_w, device)
             if feats_w is None:
                 continue
+
+            # Load auxiliary features if available; otherwise, use weighted features.
             if feat_dir_a:
                 h5_path_a = os.path.join(feat_dir_a, slide_filename)
                 feats_a, coords_a = load_patch_feats(h5_path_a, device)
             else:
-                feats_a = feats_w
-                coords_a = coords_w
+                feats_a, coords_a = feats_w, coords_w
+
             if feats_a is None:
                 continue
-            
-            feats_w,feats_a = match_coords(feats_w,feats_a,coords_w,coords_a)
+
+            # Perform coordinate matching only if required.
+            if do_match:
+                feats_w, feats_a = match_coords(feats_w, feats_a, coords_w, coords_a)
+            # Else, assume features are already aligned.
 
             all_feats_list_w.append(feats_w)
             all_feats_list_a.append(feats_a)
@@ -203,22 +175,14 @@ def get_pat_embs(
         if all_feats_list_w:
             all_feats_cat_w = torch.cat(all_feats_list_w, dim=0).unsqueeze(0)
             all_feats_cat_a = torch.cat(all_feats_list_a, dim=0).unsqueeze(0)
-            assert all_feats_cat_w.ndim == 3, (
-                f"Expected 3D tensor, got {all_feats_cat_w.ndim}"
-            )
-            assert all_feats_cat_a.ndim == 3, (
-                f"Expected 3D tensor, got {all_feats_cat_a.ndim}"
-            )
-            assert all_feats_cat_w.shape[1] == all_feats_cat_a.shape[1], (
-                f"Expected same number of tiles, got {all_feats_cat_w.shape[1]} and {all_feats_cat_a.shape[1]}"
-            )
-            patient_feats = get_cobra_feats(model,all_feats_cat_w.to(dtype),all_feats_cat_a.to(dtype),top_k=top_k)
+            assert all_feats_cat_w.ndim == 3, f"Expected 3D tensor, got {all_feats_cat_w.ndim}"
+            assert all_feats_cat_a.ndim == 3, f"Expected 3D tensor, got {all_feats_cat_a.ndim}"
+            assert (
+                all_feats_cat_w.shape[1] == all_feats_cat_a.shape[1]
+            ), f"Expected same number of tiles, got {all_feats_cat_w.shape[1]} and {all_feats_cat_a.shape[1]}"
+            patient_feats = get_cobra_feats(model, all_feats_cat_w.to(dtype), all_feats_cat_a.to(dtype), top_k=top_k)
             pat_dict[patient_id] = {
-                "feats": patient_feats.to(torch.float32)
-                .detach()
-                .squeeze()
-                .cpu()
-                .numpy(),
+                "feats": patient_feats.to(torch.float32).detach().squeeze().cpu().numpy(),
             }
         else:
             tqdm.write(f"No features found for patient {patient_id}, skipping")
@@ -234,7 +198,6 @@ def get_pat_embs(
         f.attrs["aggregation_FM"] = aggregation_fm
         f.attrs["microns"] = microns
 
-
     tqdm.write(f"Finished extraction, saved to {output_file}")
     metadata = {
         "extractor": model_name,
@@ -248,7 +211,7 @@ def get_pat_embs(
         json.dump(metadata, json_file, indent=4)
 
 def get_slide_embs(
-        model,
+    model,
     output_dir,
     feat_dir_w,
     feat_dir_a=None,
@@ -263,58 +226,29 @@ def get_slide_embs(
 ):
     """
     Generates slide-level features from tile embeddings and saves them to an HDF5 file along with metadata.
-    This function processes two sets of tile embeddings stored in separate directories (or a single directory if an alternative is not provided),
-    computes slide-level features by aggregating weighted and auxiliary tile-level embeddings using a given model, and saves the results in an HDF5
-    file along with a corresponding metadata JSON file.
-    Parameters:
-        model: 
-            The feature extraction model used to aggregate tile embeddings into slide-level features.
-        output_dir (str):
-            The directory where the output files (HDF5 file and metadata JSON) will be saved.
-        feat_dir_w (str):
-            The directory containing HDF5 files with the primary (weighted) tile embeddings.
-        feat_dir_a (str, optional):
-            The directory containing HDF5 files with auxiliary tile embeddings. If not provided, tile_emb_paths_a will be fetched from feat_dir_w.
-        output_file (str, optional):
-            The name of the output HDF5 file where aggregated slide features will be saved. Default is "cobra-feats.h5".
-        model_name (str, optional):
-            A string identifier for the model/extractor used; saved in metadata and dataset attributes. Default is "COBRAII".
-        device (str, optional):
-            The computational device (e.g., "cuda" or "cpu") on which tensors should be loaded and processed. Note that mamba requires a NVIDIA gpu to function.
-        dtype (torch.dtype, optional):
-            The data type to which the tensor embeddings are cast prior to feature aggregation. Default is torch.float32.
-        top_k (int, optional):
-            An optional parameter to select the top-k features during aggregation. When None, no top-k filtering is applied.
-        weighting_fm (str, optional):
-            A string representing the weighting function or method used in the feature calculation. Default is "Virchow2".
-        aggregation_fm (str, optional):
-            A string representing the aggregation method used to compute slide-level features from tile embeddings. Default is "Virchow2".
-        microns (int, optional):
-            An integer parameter (e.g., representing physical scale/size) that is stored in the metadata. Default is 224.
-    Behavior:
-        - Searches for HDF5 files in the provided directories using a recursive glob pattern.
-        - Loads tile-level features from each HDF5 file using an external function (load_patch_feats).
-        - Ensures that corresponding weighted and auxiliary files contain the same number of tiles.
-        - Applies the model to compute slide-level features by aggregating tile embeddings (using get_cobra_feats).
-        - Creates and writes a dataset for each slide to the output HDF5 file, with attributes recording extraction details.
-        - Saves a metadata JSON file containing extractor and processing parameters.
-        - Outputs progress using tqdm.
-    Raises:
-        AssertionError:
-            If the number of files in feat_dir_w and feat_dir_a (if provided) do not match, or if the shapes of the embeddings do not conform to expectations.
+    Loads tile embeddings from the provided directories, optionally applies match_coords (only when feat_dir_a is provided and
+    weighting_fm != aggregation_fm), and computes slide features via model aggregation.
     """
-
     slide_dict = {}
 
     tile_emb_paths_w = glob(f"{feat_dir_w}/**/*.h5", recursive=True)
     if feat_dir_a is not None:
         tile_emb_paths_a = glob(f"{feat_dir_a}/**/*.h5", recursive=True)
     else:
-        tile_emb_paths_a = glob(f"{feat_dir_w}/**/*.h5", recursive=True)
+        tile_emb_paths_a = tile_emb_paths_w
+
     assert len(tile_emb_paths_w) == len(tile_emb_paths_a), (
         f"Expected same number of files, got {len(tile_emb_paths_w)} and {len(tile_emb_paths_a)}"
     )
-    for tile_emb_path_w,tile_emb_path_a in zip(tqdm(tile_emb_paths_w), tile_emb_paths_a):
+
+    # Determine if we need to run match_coords.
+    do_match = (feat_dir_a is not None) and (weighting_fm != aggregation_fm)
+    if do_match:
+        print("Using match_coords for slide-level extraction (weighting_fm != aggregation_fm).")
+    else:
+        print("Skipping match_coords for slide-level extraction (using identical features or no auxiliary features).")
+
+    for tile_emb_path_w, tile_emb_path_a in zip(tqdm(tile_emb_paths_w), tile_emb_paths_a):
         slide_name = Path(tile_emb_path_w).stem
         feats_w, coords_w = load_patch_feats(tile_emb_path_w, device)
         if feats_w is None:
@@ -323,14 +257,15 @@ def get_slide_embs(
             tile_emb_path_a = os.path.join(feat_dir_a, f"{slide_name}.h5")
             feats_a, coords_a = load_patch_feats(tile_emb_path_a, device)
         else:
-            feats_a = feats_w
-            coords_a = coords_w
+            feats_a, coords_a = feats_w, coords_w
         if feats_a is None:
             continue
-        feats_w,feats_a = match_coords(feats_w,feats_a,coords_w,coords_a)
-        tile_embs_w = feats_w[0].unsqueeze(0)
-        tile_embs_a = feats_a[0].unsqueeze(0)
 
+        if do_match:
+            feats_w, feats_a = match_coords(feats_w, feats_a, coords_w, coords_a)
+
+        tile_embs_w = feats_w.unsqueeze(0)
+        tile_embs_a = feats_a.unsqueeze(0)
         assert tile_embs_w.ndim == 3, f"Expected 3D tensor, got {tile_embs_w.ndim}"
         assert tile_embs_a.ndim == 3, f"Expected 3D tensor, got {tile_embs_a.ndim}"
         assert tile_embs_w.shape[1] == tile_embs_a.shape[1], (
@@ -343,9 +278,9 @@ def get_slide_embs(
             "extractor": model_name,
         }
 
-    output_file = os.path.join(output_dir, output_file)
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    with h5py.File(output_file, "w") as f:
+    output_path = os.path.join(output_dir, output_file)
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with h5py.File(output_path, "w") as f:
         for slide_name, data in slide_dict.items():
             f.create_dataset(f"{slide_name}", data=data["feats"])
         f.attrs["extractor"] = model_name
@@ -354,8 +289,8 @@ def get_slide_embs(
         f.attrs["weighting_FM"] = weighting_fm
         f.attrs["aggregation_FM"] = aggregation_fm
         f.attrs["microns"] = microns
-    
-    tqdm.write(f"Finished extraction, saved to {output_file}")
+
+    tqdm.write(f"Finished extraction, saved to {output_path}")
     metadata = {
         "extractor": model_name,
         "top_k": top_k if top_k else "None",

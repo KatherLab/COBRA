@@ -1,10 +1,25 @@
 # COntrastive Biomarker Representation Alignment (COBRA)
 
-[![Paper-Arxiv](https://img.shields.io/badge/Paper-Arxiv-red)](https://arxiv.org/abs/2411.13623)
-[![Paper-Cite](https://img.shields.io/badge/Paper-Cite-blue)](#citation)
-[![Model-Huggingface](https://img.shields.io/badge/Model-Huggingface-yellow)](https://huggingface.co/KatherLab/COBRA)
+
+<!-- [Preprint](https://arxiv.org/abs/2411.13623) | [Download Models](https://huggingface.co/KatherLab/COBRA) | [Cite](#citation) -->
+<a href='https://arxiv.org/abs/2411.13623'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a> 
+<a href='#citation'><img src='https://img.shields.io/badge/Paper-Cite-blue'></a>
+<a href='https://huggingface.co/KatherLab/COBRA'><img src='https://img.shields.io/badge/Model-Huggingface-yellow'></a>
+
+## Table of Contents
+
+- [Abstract](#abstract)
+- [News](#news)
+- [Installation](#installation)
+- [Feature Extraction](#feature-extraction)
+- [Crossvalidation](#crossvalidation)
+- [Heatmaps](#generating-heatmaps)
+- [Pretraining](#pretraining)
+- [References](#references)
+- [Citation](#citation)
 
 ## Abstract
+
 
 > Representation learning of pathology whole-slide images (WSIs) has primarily relied on weak supervision with Multiple Instance Learning (MIL). This approach leads to slide representations highly tailored to a specific clinical task. Self-supervised learning (SSL) has been successfully applied to train histopathology foundation models (FMs) for patch embedding generation. However, generating patient or slide level embeddings remains challenging. Existing approaches for slide representation learning extend the principles of SSL from patch level learning to entire slides by aligning different augmentations of the slide or by utilizing multimodal data. By integrating tile embeddings from multiple FMs, we propose a new single modality SSL method in feature space that generates useful slide representations. Our contrastive pretraining strategy, called COBRA, employs multiple FMs and an architecture based on Mamba-2. COBRA exceeds performance of state-of-the-art slide encoders on several public cohorts by at least +4.4% AUC, despite only being pretrained on a limited set of WSIs. Additionally, COBRA is readily compatible at inference time with previously unseen feature extractors.
 
@@ -31,6 +46,7 @@ uv sync --no-build-isolation
 
 If there are any **issues**, consider also installing hatchling and editables:
 
+
 ```bash
 uv pip install hatchling editables
 ```
@@ -47,9 +63,9 @@ For Debian or derivatives:
 apt install python3.11-dev
 ```
 
-## WSI Level Embeddings
+## Feature extraction
 
-To deploy the COBRA model, follow these steps:
+To deploy the COBRA model to extract WSI-level or even patient-level embeddings, follow these steps:
 
 1. **Prepare your data**: Extract tile embeddings with one or more patch encoders of your choice using [STAMP](https://github.com/KatherLab/STAMP).  
     - **COBRA I:**
@@ -70,18 +86,19 @@ To deploy the COBRA model, follow these steps:
 
    ```yaml
    extract_feats:
-     download_model: false
-     checkpoint_path: "/path/to/checkpoint.pth.tar"
-     top_k: 100
-     output_dir: "/path/to/extracted/output"
-     feat_dir: "/path/to/tile_embeddings"
-     feat_dir_a: "/path/to/tile_embeddings_aux"  # Optional, for aggregation features
-     model_name: "COBRAII"
-     patch_encoder: "Virchow2"
-     patch_encoder_a: "Virchow2"
-     h5_name: "cobra_feats.h5"
-     microns: 224
-     slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction, omit for slide-level
+    download_model: false
+    checkpoint_path: "/path/to/checkpoint.pth.tar"
+    top_k: 100
+    output_dir: "/path/to/extracted/output"
+    feat_dir: "/path/to/tile_embeddings"
+    feat_dir_a: "/path/to/tile_embeddings_aux"  # Optional, for aggregation features
+    model_name: "COBRAII"
+    patch_encoder: "Virchow2"
+    patch_encoder_a: "Virchow2"
+    h5_name: "cobra_feats.h5"
+    microns: 224
+    use_cobraI: false # wheter to use cobraI or cobraII
+    slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction, omit for slide-level
    ```
 
    **Usage:**
@@ -112,7 +129,7 @@ To deploy the COBRA model, follow these steps:
 
    > *Note:* You have the option of providing different directories for weighting and aggregation steps. The script will load primary features from `--feat_dir` and, if provided, additional features from `--feat_dir_a`. Features are matched by their coordinates before aggregation.
 
-## Using Extracted COBRA Features for Crossvalidation
+## Crossvalidation
 
 After extracting the COBRA features (either at the slide or patient level), you can run crossvalidation to train and evaluate a downstream MLP classifier. The crossvalidation workflow is managed by two main scripts.
 
@@ -234,9 +251,10 @@ python -m cobra.inference.heatmaps \
     -v 2
 ```
 
-## Pretraining via Self-Supervised Learning (SSL)
+## Pretraining
 
-COBRA also supports pretraining using a self-supervised learning (SSL) framework adapted from MoCo-v3.
+COBRA is pretrained with constrastive self-supervised learning based on [MoCo-v3](https://github.com/facebookresearch/moco-v3).
+The code to pretrain COBRA is explained in the following.
 
 ### What It Does
 - Pretrains a COBRA-based model using tile-level features.
@@ -305,7 +323,7 @@ This script sets up the SSL pretraining using your specified configuration and t
 
 ## Citation
 
-If you find our work useful, please consider citing our preprint:
+If you find our work useful in your research or if you use parts of this code please consider citing our paper:
 
 ```bibtex
 @inproceedings{cobra,

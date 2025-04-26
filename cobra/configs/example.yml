@@ -1,17 +1,17 @@
 extract_feats:
   download_model: false
   checkpoint_path: "/path/to/checkpoint.pth.tar"
-  top_k: 100
+  top_k: null
   output_dir: "/path/to/slide_embeddings"
   feat_dir: "/path/to/tile_embeddings"
-  feat_dir_a: "/path/to/tile_embeddings_aux"  # Optional: for aggregation features
+  feat_dir_a: null # Optional: for aggregation features
   model_name: "COBRAII"
   patch_encoder: "Virchow2"
   patch_encoder_a: "Virchow2"
-  h5_name: "cobra_feats.h5"
+  h5_name: "cobraII_feats.h5"
   microns: 224
   use_cobraI: false
-  slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction; omit for slide-level
+  slide_table: null  # Provide for patient-level extraction; omit for slide-level
 
 train:
   csv_path: "/path/to/metadata.csv"

@@ -1,24 +1,24 @@
 extract_feats:
   download_model: false
-  checkpoint_path: "/mnt/bulk-mars/timlenz/toolarena/checkpoints/checkpoint.pth.tar"
+  checkpoint_path: "/path/to/checkpoint.pth.tar"
   top_k: 100
-  output_dir: "/mnt/bulk-mars/timlenz/toolarena/output/slide_embeddings"
-  feat_dir: "/mnt/bulk-mars/timlenz/toolarena/features/tile_embeddings"
-  feat_dir_a: "/mnt/bulk-mars/timlenz/toolarena/features/tile_embeddings_aux"  # Optional for aggregation features
+  output_dir: "/path/to/slide_embeddings"
+  feat_dir: "/path/to/tile_embeddings"
+  feat_dir_a: "/path/to/tile_embeddings_aux"  # Optional: for aggregation features
   model_name: "COBRAII"
   patch_encoder: "Virchow2"
   patch_encoder_a: "Virchow2"
   h5_name: "cobra_feats.h5"
   microns: 224
   use_cobraI: false
-  slide_table: "/mnt/bulk-mars/timlenz/toolarena/data/slide_table.csv"  # Provide for patient-level extraction
+  slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction; omit for slide-level
 
 train:
-  csv_path: "/mnt/bulk-mars/timlenz/toolarena/data/metadata.csv"
+  csv_path: "/path/to/metadata.csv"
   target_column: "TARGET"
   patient_id_column: "PATIENT_ID"
-  h5_path: "/mnt/bulk-mars/timlenz/toolarena/features/extracted_features.h5"
-  output_folder: "/mnt/bulk-mars/timlenz/toolarena/output/crossval"
+  h5_path: "/path/to/extracted_features.h5"
+  output_folder: "/path/to/crossval"
   hps:
     lr: 0.0005
     hidden_dim: 512
@@ -30,23 +30,23 @@ train:
     dropout: 0.3
 
 deploy:
-  csv_path: "/mnt/bulk-mars/timlenz/toolarena/data/test_metadata.csv"
+  csv_path: "/path/to/test_metadata.csv"
   target_column: "TARGET"
   patient_id_column: "PATIENT_ID"
-  h5_path: "/mnt/bulk-mars/timlenz/toolarena/features/extracted_features.h5"
-  output_folder: "/mnt/bulk-mars/timlenz/toolarena/output/deploy"
-  label_encoder_path: "/mnt/bulk-mars/timlenz/toolarena/models/label_encoder.pkl"
+  h5_path: "/path/to/extracted_features.h5"
+  output_folder: "/path/to/deploy"
+  label_encoder_path: "/path/to/label_encoder.pkl"
   hps:
     hidden_dim: 512
     n_folds: 5
 
 heatmap:
-  feat_dir: "/mnt/bulk-mars/timlenz/toolarena/features/tile_embeddings"
-  wsi_dir: "/mnt/bulk-mars/timlenz/toolarena/data/wsi_files"
-  checkpoint_path: "/mnt/bulk-mars/timlenz/toolarena/checkpoints/heatmap_checkpoint.pth.tar"
+  feat_dir: "/path/to/tile_embeddings"
+  wsi_dir: "/path/to/wsi_files"
+  checkpoint_path: "/path/to/heatmap_checkpoint.pth.tar"
   microns: 112
   patch_size: 224
-  output_dir: "/mnt/bulk-mars/timlenz/toolarena/output/heatmap"
+  output_dir: "/path/to/heatmap_output"
   stamp_version: 2
 
 model:
@@ -82,7 +82,7 @@ general:
     - "fm3"
     - "fm4"
   feat_base_paths:
-    - "/mnt/bulk-mars/timlenz/toolarena/features/features_set1"
-    - "/mnt/bulk-mars/timlenz/toolarena/features/features_set2"
+    - "/path/to/features_set1"
+    - "/path/to/features_set2"
   paths:
-    out_dir: "/mnt/bulk-mars/timlenz/toolarena/output/pretrain"
+    out_dir: "/path/to/pretrain_output"

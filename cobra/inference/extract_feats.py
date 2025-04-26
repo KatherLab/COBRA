@@ -455,24 +455,16 @@ def main():
     print(f"Using configuration: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     cobra_func = get_cobra if args.use_cobraI else get_cobraII
-    if args.download_model:
-            model = cobra_func(
-                download_weights=args.download_model,
+    if args.checkpoint_path:
+        model = cobra_func(
+                download_weights=(not os.path.exists(args.checkpoint_path)),
+                checkpoint_path=args.checkpoint_path,
             )
     else:
-        if args.checkpoint_path:
-            if os.path.exists(args.checkpoint_path):
-                model = cobra_func(
-                    checkpoint_path=args.checkpoint_path,
-                )
-            else:
-                raise FileNotFoundError(
-                    f"Checkpoint file {args.checkpoint_path} not found"
-                )
-        else:
-            raise ValueError(
-                "Please provide either a checkpoint path or set the download_model flag"
-            )
+        print("No checkpoint path provided. Downloading model weights...")
+        model = cobra_func(
+            download_weights=True,
+        )
     model = model.to(device)
     model.eval()
 

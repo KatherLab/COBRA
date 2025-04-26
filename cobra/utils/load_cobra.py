@@ -24,9 +24,10 @@ def get_cobra(download_weights=False, checkpoint_path="weights/pytorch_model.bin
     if download_weights:
         if not os.path.exists(os.path.dirname(checkpoint_path)):
             os.makedirs(os.path.dirname(checkpoint_path))
-        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", 
+        download_path = hf_hub_download("KatherLab/COBRA", filename="pytorch_model.bin", 
                                           local_dir=os.path.dirname(checkpoint_path), 
                                           force_download=True)
+        os.rename(download_path, checkpoint_path)
         print(f"Saving model to {checkpoint_path}")
     else:
         if not os.path.exists(checkpoint_path):
@@ -55,9 +56,10 @@ def get_cobraII(download_weights=False, checkpoint_path="weights/cobraII.pth.tar
     if download_weights:
         if not os.path.exists(os.path.dirname(checkpoint_path)):
             os.makedirs(os.path.dirname(checkpoint_path))
-        checkpoint_path = hf_hub_download("KatherLab/COBRA", filename="cobraII.pth.tar", 
+        download_path = hf_hub_download("KatherLab/COBRA", filename="cobraII.pth.tar", 
                                           local_dir=os.path.dirname(checkpoint_path), 
                                           force_download=True)
+        os.rename(download_path, checkpoint_path)
         print(f"Saving model to {checkpoint_path}")
     else:
         if not os.path.exists(checkpoint_path):

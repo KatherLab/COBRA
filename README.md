@@ -88,7 +88,7 @@ To deploy the COBRA model to extract WSI-level or even patient-level embeddings,
    extract_feats:
     download_model: false
     checkpoint_path: "/path/to/checkpoint.pth.tar"
-    top_k: 100
+    top_k: null
     output_dir: "/path/to/extracted/output"
     feat_dir: "/path/to/tile_embeddings"
     feat_dir_a: "/path/to/tile_embeddings_aux"  # Optional, for aggregation features

@@ -106,25 +106,25 @@ To deploy the COBRA model to extract WSI-level or even patient-level embeddings,
    - **Slide-level extraction** (without a slide table):
 
      ```bash
-     python -m cobra.inference.extract_feats_slide --feat_dir "/path/to/tile_embeddings" --output_dir "/path/to/slide_embeddings" --checkpoint_path "/path/to/checkpoint.pth.tar"
+     python -m cobra.inference.extract_feats --feat_dir "/path/to/tile_embeddings" --output_dir "/path/to/slide_embeddings" --checkpoint_path "/path/to/checkpoint.pth.tar"
      ```
 
      Or by providing a configuration file:
 
      ```bash
-     python -m cobra.inference.extract_feats_slide --config /path/to/extract_feats_config.yml
+     python -m cobra.inference.extract_feats --config /path/to/extract_feats_config.yml
      ```
 
    - **Patient-level extraction** (using a slide table):
 
      ```bash
-     python -m cobra.inference.extract_feats_patient --feat_dir "/path/to/tile_embeddings" --output_dir "/path/to/patient_embeddings" --slide_table "/path/to/slide_table.csv" --checkpoint_path "/path/to/checkpoint.pth.tar"
+     python -m cobra.inference.extract_feats --feat_dir "/path/to/tile_embeddings" --output_dir "/path/to/patient_embeddings" --slide_table "/path/to/slide_table.csv" --checkpoint_path "/path/to/checkpoint.pth.tar"
      ```
 
      Or with configuration:
 
      ```bash
-     python -m cobra.inference.extract_feats_patient --config /path/to/extract_feats_config.yml
+     python -m cobra.inference.extract_feats --config /path/to/extract_feats_config.yml
      ```
 
    > *Note:* You have the option of providing different directories for weighting and aggregation steps. The script will load primary features from `--feat_dir` and, if provided, additional features from `--feat_dir_a`. Features are matched by their coordinates before aggregation.

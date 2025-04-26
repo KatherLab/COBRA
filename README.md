@@ -97,7 +97,6 @@ To deploy the COBRA model to extract WSI-level or even patient-level embeddings,
     patch_encoder_a: "Virchow2"
     h5_name: "cobra_feats.h5"
     microns: 224
-
     use_cobraI: false # wheter to use cobraI or cobraII
     slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction, omit for slide-level
    ```

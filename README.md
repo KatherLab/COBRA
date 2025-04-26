@@ -99,6 +99,7 @@ To deploy the COBRA model to extract WSI-level or even patient-level embeddings,
     microns: 224
     use_cobraI: false # wheter to use cobraI or cobraII
     slide_table: "/path/to/slide_table.csv"  # Provide for patient-level extraction, omit for slide-level
+    chunk_size: null # should the output_file be broken into chunks (very large cohorts)
    ```
 
    **Usage:**

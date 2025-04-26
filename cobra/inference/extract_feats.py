@@ -113,7 +113,37 @@ def get_cobra_feats(model,patch_feats_w,patch_feats_a,top_k=None):
         else:
             cobra_feats = torch.bmm(A, patch_feats_a).squeeze(1)
     return cobra_feats.squeeze(0)
-    
+
+def save_chunk(
+    data_dict,
+    chunk_index,
+    output_dir,
+    output_file,
+    model_name,
+    top_k,
+    dtype,
+    weighting_fm,
+    aggregation_fm,
+    microns,
+):
+    """Helper: save one chunk of features to <output_file>_chunk<chunk_index>.h5"""
+    chunk_file = os.path.join(
+        output_dir, f"{output_file.split('.h5')[0]}_{chunk_index}.h5"
+    )
+    os.makedirs(os.path.dirname(chunk_file), exist_ok=True)
+    with h5py.File(chunk_file, "w") as f:
+        for key, data in data_dict.items():
+            f.create_dataset(key, data=data["feats"])
+        f.attrs.update({
+            "extractor":     model_name,
+            "top_k":         top_k if top_k else "None",
+            "dtype":         str(dtype),
+            "weighting_FM":  weighting_fm,
+            "aggregation_FM":aggregation_fm,
+            "microns":       microns,
+        })
+    tqdm.write(f"Saved chunk {chunk_index} to {chunk_file}")
+
 def get_pat_embs(
     model,
     output_dir,
@@ -128,53 +158,18 @@ def get_pat_embs(
     weighting_fm="Virchow2",
     aggregation_fm="Virchow2",
     microns=224,
-    ):
+    chunk_size=None,  # New parameter for chunking
+):
     """
-    Extract patient-level features from slide-level feature files and save them into an HDF5 file.
-    This function reads a slide table CSV file that contains slide information grouped by patient.
-    For each patient, it iterates over all associated slide entries, loads the corresponding features
-    from the specified directories (one for weighting features and optionally one for an alternative set),
-    matches coordinates between the two sets of features, and aggregates them. The extracted and
-    aggregated features are then passed through a provided model to obtain patient-level embeddings.
-    Finally, the function saves the computed features and metadata (including extractor settings and parameters)
-    to an HDF5 file and a JSON metadata file in the output directory.
-    Note:
-        - The function skips processing if the output file already exists and its size is greater than 800 bytes.
-        - If feature extraction for a particular slide fails (i.e., features are None), that slide is skipped.
-        - The function asserts that the concatenated feature tensors have the expected dimensions before proceeding.
-    Parameters:
-        model: The model used to compute the final patient-level features.
-        output_dir (str): Directory where the output files (HDF5 and metadata JSON) will be saved.
-        feat_dir_w (str): Directory containing the weighting feature H5 files for each slide.
-        feat_dir_a (str, optional): Directory containing the alternative feature H5 files. If None, weighting features are used.
-        output_file (str, optional): Name of the output HDF5 file. Default is "cobra-feats.h5".
-        model_name (str, optional): Name of the model/extractor used. Default is "COBRAII".
-        slide_table_path (str): Path to the CSV file containing slide information, including patient IDs and filenames.
-        device (str, optional): Device to use for computation (e.g., "cuda" or "cpu"). Default is "cuda".
-        dtype (torch.dtype, optional): Torch data type to which features are cast. Default is torch.float32.
-        top_k (int, optional): If provided, only the top_k features will be selected during feature aggregation.
-        weighting_fm (str, optional): Descriptor for the weighting feature method used. Default is "Virchow2".
-        aggregation_fm (str, optional): Descriptor for the aggregation feature method used. Default is "Virchow2".
-        microns (int, optional): Scale parameter indicating the micron size of the features. Default is 224.
-    Behavior:
-        - Loads the slide table and groups slides by patient.
-        - Iterates over each patient, loading and optionally matching features from the provided directories.
-        - Aggregates slide features into a 3D tensor and computes patient-level features using the model.
-        - Saves the results in a specified HDF5 file under the given output directory.
-        - Writes metadata about the extraction process to a metadata.json file.
-    Returns:
-        None
+    Extract patient-level features from slide-level feature files and save them into HDF5 files.
+    Supports saving in chunks if `chunk_size` is provided.
     """
-    
     slide_table = pd.read_csv(slide_table_path)
     patient_groups = slide_table.groupby("PATIENT")
     pat_dict = {}
 
-    output_file = os.path.join(output_dir, output_file)
-
-    if os.path.exists(output_file) and os.path.getsize(output_file) > 800:
-        tqdm.write(f"Output file {output_file} already exists, skipping")
-        return
+    chunk_index = 0  # Track the current chunk index
+    chunk_patients = []  # Track patients in the current chunk
 
     for patient_id, group in tqdm(patient_groups, leave=False):
         all_feats_list_w = []
@@ -195,7 +190,7 @@ def get_pat_embs(
             if feats_a is None:
                 continue
             
-            feats_w,feats_a = match_coords(feats_w,feats_a,coords_w,coords_a)
+            feats_w, feats_a = match_coords(feats_w, feats_a, coords_w, coords_a)
 
             all_feats_list_w.append(feats_w)
             all_feats_list_a.append(feats_a)
@@ -212,7 +207,7 @@ def get_pat_embs(
             assert all_feats_cat_w.shape[1] == all_feats_cat_a.shape[1], (
                 f"Expected same number of tiles, got {all_feats_cat_w.shape[1]} and {all_feats_cat_a.shape[1]}"
             )
-            patient_feats = get_cobra_feats(model,all_feats_cat_w.to(dtype),all_feats_cat_a.to(dtype),top_k=top_k)
+            patient_feats = get_cobra_feats(model, all_feats_cat_w.to(dtype), all_feats_cat_a.to(dtype), top_k=top_k)
             pat_dict[patient_id] = {
                 "feats": patient_feats.to(torch.float32)
                 .detach()
@@ -220,22 +215,40 @@ def get_pat_embs(
                 .cpu()
                 .numpy(),
             }
-        else:
-            tqdm.write(f"No features found for patient {patient_id}, skipping")
-
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    with h5py.File(output_file, "w") as f:
-        for patient_id, data in pat_dict.items():
-            f.create_dataset(f"{patient_id}", data=data["feats"])
-        f.attrs["extractor"] = model_name
-        f.attrs["top_k"] = top_k if top_k else "None"
-        f.attrs["dtype"] = str(dtype)
-        f.attrs["weighting_FM"] = weighting_fm
-        f.attrs["aggregation_FM"] = aggregation_fm
-        f.attrs["microns"] = microns
+            chunk_patients.append(patient_id)
 
 
-    tqdm.write(f"Finished extraction, saved to {output_file}")
+        if chunk_size and len(chunk_patients) >= chunk_size:
+            save_chunk(
+                pat_dict,
+                chunk_index,
+                output_dir,
+                output_file,
+                model_name,
+                top_k,
+                dtype,
+                weighting_fm,
+                aggregation_fm,
+                microns,
+            )
+            pat_dict.clear()
+            chunk_patients.clear()
+            chunk_index += 1
+
+    if pat_dict:  # final leftover
+        save_chunk(
+            pat_dict,
+            chunk_index,
+            output_dir,
+            output_file,
+            model_name,
+            top_k,
+            dtype,
+            weighting_fm,
+            aggregation_fm,
+            microns,
+        )
+
     metadata = {
         "extractor": model_name,
         "top_k": top_k if top_k else "None",
@@ -248,7 +261,7 @@ def get_pat_embs(
         json.dump(metadata, json_file, indent=4)
 
 def get_slide_embs(
-        model,
+    model,
     output_dir,
     feat_dir_w,
     feat_dir_a=None,
@@ -260,66 +273,51 @@ def get_slide_embs(
     weighting_fm="Virchow2",
     aggregation_fm="Virchow2",
     microns=224,
+    chunk_size=None,  # New parameter for chunking
 ):
     """
-    Generates slide-level features from tile embeddings and saves them to an HDF5 file along with metadata.
-    This function processes two sets of tile embeddings stored in separate directories (or a single directory if an alternative is not provided),
-    computes slide-level features by aggregating weighted and auxiliary tile-level embeddings using a given model, and saves the results in an HDF5
-    file along with a corresponding metadata JSON file.
+    Generates slide-level features from tile embeddings and saves them in HDF5 files (in chunks if chunk_size is provided) 
+    along with a metadata JSON file.
+
     Parameters:
-        model: 
-            The feature extraction model used to aggregate tile embeddings into slide-level features.
-        output_dir (str):
-            The directory where the output files (HDF5 file and metadata JSON) will be saved.
-        feat_dir_w (str):
-            The directory containing HDF5 files with the primary (weighted) tile embeddings.
-        feat_dir_a (str, optional):
-            The directory containing HDF5 files with auxiliary tile embeddings. If not provided, tile_emb_paths_a will be fetched from feat_dir_w.
-        output_file (str, optional):
-            The name of the output HDF5 file where aggregated slide features will be saved. Default is "cobra-feats.h5".
-        model_name (str, optional):
-            A string identifier for the model/extractor used; saved in metadata and dataset attributes. Default is "COBRAII".
-        device (str, optional):
-            The computational device (e.g., "cuda" or "cpu") on which tensors should be loaded and processed. Note that mamba requires a NVIDIA gpu to function.
-        dtype (torch.dtype, optional):
-            The data type to which the tensor embeddings are cast prior to feature aggregation. Default is torch.float32.
-        top_k (int, optional):
-            An optional parameter to select the top-k features during aggregation. When None, no top-k filtering is applied.
-        weighting_fm (str, optional):
-            A string representing the weighting function or method used in the feature calculation. Default is "Virchow2".
-        aggregation_fm (str, optional):
-            A string representing the aggregation method used to compute slide-level features from tile embeddings. Default is "Virchow2".
-        microns (int, optional):
-            An integer parameter (e.g., representing physical scale/size) that is stored in the metadata. Default is 224.
-    Behavior:
-        - Searches for HDF5 files in the provided directories using a recursive glob pattern.
-        - Loads tile-level features from each HDF5 file using an external function (load_patch_feats).
-        - Ensures that corresponding weighted and auxiliary files contain the same number of tiles.
-        - Applies the model to compute slide-level features by aggregating tile embeddings (using get_cobra_feats).
-        - Creates and writes a dataset for each slide to the output HDF5 file, with attributes recording extraction details.
-        - Saves a metadata JSON file containing extractor and processing parameters.
-        - Outputs progress using tqdm.
-    Raises:
-        AssertionError:
-            If the number of files in feat_dir_w and feat_dir_a (if provided) do not match, or if the shapes of the embeddings do not conform to expectations.
+        model (torch.nn.Module): The feature extraction model.
+        output_dir (str): Directory where output files will be saved.
+        feat_dir_w (str): Directory containing HDF5 files with primary (weighted) tile embeddings.
+        feat_dir_a (str, optional): Directory containing HDF5 files with auxiliary tile embeddings. 
+                                    Defaults to None (in which case weighted features are used).
+        output_file (str, optional): Base name for the output HDF5 file. Default is "cobra-feats.h5".
+        model_name (str, optional): Identifier for the extractor. Default is "COBRAII".
+        device (str, optional): Device to use ("cuda" or "cpu"). Default is "cuda".
+        dtype (torch.dtype, optional): Data type for processing features. Default is torch.float32.
+        top_k (int, optional): Number of top patches to use during aggregation.
+        weighting_fm (str, optional): Name/identifier for the weighting method. Default is "Virchow2".
+        aggregation_fm (str, optional): Name/identifier for the aggregation method. Default is "Virchow2".
+        microns (int, optional): Microns per patch for extraction. Default is 224.
+        chunk_size (int, optional): Maximum number of slides per output file (if provided).
     """
 
     slide_dict = {}
+    chunk_index = 0
+    chunk_slides = []
 
     tile_emb_paths_w = glob(f"{feat_dir_w}/**/*.h5", recursive=True)
     if feat_dir_a is not None:
         tile_emb_paths_a = glob(f"{feat_dir_a}/**/*.h5", recursive=True)
     else:
-        tile_emb_paths_a = glob(f"{feat_dir_w}/**/*.h5", recursive=True)
+        tile_emb_paths_a = tile_emb_paths_w
+
     assert len(tile_emb_paths_w) == len(tile_emb_paths_a), (
         f"Expected same number of files, got {len(tile_emb_paths_w)} and {len(tile_emb_paths_a)}"
     )
-    for tile_emb_path_w,tile_emb_path_a in zip(tqdm(tile_emb_paths_w), tile_emb_paths_a):
+
+    for tile_emb_path_w, tile_emb_path_a in zip(tqdm(tile_emb_paths_w), tile_emb_paths_a):
         slide_name = Path(tile_emb_path_w).stem
+
         feats_w, coords_w = load_patch_feats(tile_emb_path_w, device)
         if feats_w is None:
             continue
         if feat_dir_a:
+            # Assume the auxiliary file has the same base name in feat_dir_a
             tile_emb_path_a = os.path.join(feat_dir_a, f"{slide_name}.h5")
             feats_a, coords_a = load_patch_feats(tile_emb_path_a, device)
         else:
@@ -327,7 +325,11 @@ def get_slide_embs(
             coords_a = coords_w
         if feats_a is None:
             continue
-        feats_w,feats_a = match_coords(feats_w,feats_a,coords_w,coords_a)
+
+        # Match corresponding tile features based on coordinates
+        feats_w, feats_a = match_coords(feats_w, feats_a, coords_w, coords_a)
+
+        # The tile embeddings are expected to be in the first index (adjust as needed)
         tile_embs_w = feats_w[0].unsqueeze(0)
         tile_embs_a = feats_a[0].unsqueeze(0)
 
@@ -342,20 +344,57 @@ def get_slide_embs(
             "feats": slide_feats.to(torch.float32).detach().cpu().numpy(),
             "extractor": model_name,
         }
+        chunk_slides.append(slide_name)
 
-    output_file = os.path.join(output_dir, output_file)
-    os.makedirs(os.path.dirname(output_file), exist_ok=True)
-    with h5py.File(output_file, "w") as f:
-        for slide_name, data in slide_dict.items():
-            f.create_dataset(f"{slide_name}", data=data["feats"])
-        f.attrs["extractor"] = model_name
-        f.attrs["top_k"] = top_k if top_k else "None"
-        f.attrs["dtype"] = str(dtype)
-        f.attrs["weighting_FM"] = weighting_fm
-        f.attrs["aggregation_FM"] = aggregation_fm
-        f.attrs["microns"] = microns
-    
-    tqdm.write(f"Finished extraction, saved to {output_file}")
+        if chunk_size and len(chunk_slides) >= chunk_size:
+            # Save current chunk using the shared save_chunk helper function
+            save_chunk(
+                slide_dict,
+                chunk_index,
+                output_dir,
+                output_file,
+                model_name,
+                top_k,
+                dtype,
+                weighting_fm,
+                aggregation_fm,
+                microns,
+            )
+            slide_dict.clear()
+            chunk_slides.clear()
+            chunk_index += 1
+
+    # Save any remaining slides (if not an exact multiple of chunk_size)
+    if slide_dict:
+        if chunk_size:
+            save_chunk(
+                slide_dict,
+                chunk_index,
+                output_dir,
+                output_file,
+                model_name,
+                top_k,
+                dtype,
+                weighting_fm,
+                aggregation_fm,
+                microns,
+            )
+            tqdm.write(f"Finished extraction, saved chunk {chunk_index} to {output_dir}")
+        else:
+            # If no chunking, write all slides to a single HDF5 file
+            output_path = os.path.join(output_dir, output_file)
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+            with h5py.File(output_path, "w") as f:
+                for slide_name, data in slide_dict.items():
+                    f.create_dataset(f"{slide_name}", data=data["feats"])
+                f.attrs["extractor"] = model_name
+                f.attrs["top_k"] = top_k if top_k else "None"
+                f.attrs["dtype"] = str(dtype)
+                f.attrs["weighting_FM"] = weighting_fm
+                f.attrs["aggregation_FM"] = aggregation_fm
+                f.attrs["microns"] = microns
+            tqdm.write(f"Finished extraction, saved to {output_path}")
+
     metadata = {
         "extractor": model_name,
         "top_k": top_k if top_k else "None",
@@ -370,36 +409,44 @@ def get_slide_embs(
 
 def main():
     """
-    Main function for extracting slide or patient embeddings using the COBRA model.
-    This function parses command-line arguments, optionally loads configuration parameters
-    from a YAML file, and sets up the model based on the provided arguments. It supports
-    two modes of embedding extraction:
-        - Patient-level embeddings: If a slide table is provided via the '--slide_table' argument.
-        - Slide-level embeddings: If no slide table is provided.
-    The function determines whether to download model weights or load a checkpoint based on
-    the provided flags, selects the appropriate COBRA model function (COBRA I or COBRAII),
-    and configures the model's device and data type (adjusting to mixed FP16 precision if the 
-    GPU's compute capability is less than 8.0).
-    Arguments:
-            -c, --config (str): Optional path to a YAML configuration file to override command-line arguments.
-            -d, --download_model: Flag indicating whether to download model weights.
-            -w, --checkpoint_path (str): Path to the model checkpoint file.
-            -k, --top_k (int): Optional top k tiles to use for slide/patient embedding.
-            -o, --output_dir (str): Directory to save the extracted features (required).
-            -f, --feat_dir (str): Directory containing tile feature files (required).
-            -g, --feat_dir_a (str): Optional directory containing tile feature files for aggregation.
-            -m, --model_name (str): Model name (default: "COBRAII").
-            -p, --patch_encoder (str): Patch encoder name (default: "Virchow2").
-            -a, --patch_encoder_a (str): Patch encoder name used for aggregation (default: "Virchow2").
-            -e, --h5_name (str): Output HDF5 file name (default: "cobra_feats.h5").
-            -r, --microns (int): Microns per patch used for extraction (default: 224).
-            -s, --slide_table (str): Optional slide table path for patient-level extraction.
-            -u, --use_cobraI: Flag to use the COBRA I model; if not set, COBRAII is used.
+    Main function for extracting slide-level or patient-level embeddings using the COBRA model.
+
+    This function parses command-line arguments (and optionally a YAML configuration file) to set up the
+    extraction parameters, including:
+      - Model weights (download or load checkpoint)
+      - Input directories for tile feature files (weighted and auxiliary)
+      - Extraction mode: patient-level (if a slide table is provided) or slide-level (if not)
+      - Aggregation settings (e.g., top_k tiles, patch encoders, microns per patch)
+      - Optional chunking: split the output HDF5 files if the number of patients or slides exceeds a given chunk size
+
+    When a slide table is provided via the '--slide_table' argument, patient-level embeddings are computed
+    by grouping slides per patient. Otherwise, slide-level embeddings are computed by aggregating tile embeddings
+    into a single output file (or into multiple chunked files if --chunk_size is specified).
+
+    Command-line arguments include:
+        -c, --config (str): Optional path to a YAML configuration file to override command-line arguments.
+        -d, --download_model: Flag to indicate whether to download model weights.
+        -w, --checkpoint_path (str): Path to the model checkpoint.
+        -k, --top_k (int): Number of top tiles to consider for feature aggregation.
+        -o, --output_dir (str): Directory where the extracted features will be saved.
+        -f, --feat_dir (str): Directory containing primary tile feature files.
+        -g, --feat_dir_a (str): Directory containing auxiliary tile feature files for aggregation.
+        -m, --model_name (str): Identifier for the model (default: "COBRAII").
+        -p, --patch_encoder (str): Name of the patch encoder (default: "Virchow2").
+        -a, --patch_encoder_a (str): Name of the patch encoder used for aggregation (default: "Virchow2").
+        -e, --h5_name (str): Base name of the output HDF5 file (default: "cobra_feats.h5").
+        -r, --microns (int): Microns per patch used for extraction (default: 224).
+        -s, --slide_table (str): Path to a slide table for patient-level extraction.
+        -u, --use_cobraI: Flag to use the COBRA I model instead of COBRAII.
+        -z, --chunk_size (int): Maximum number of patients or slides per HDF5 file. 
+                                When set, the output is split into multiple chunked files.
+
     Raises:
-            FileNotFoundError: If a checkpoint path is provided but the file does not exist.
-            ValueError: If neither a checkpoint path is provided nor the download_model flag is set.
+        FileNotFoundError: If a provided checkpoint path does not exist.
+        ValueError: If neither a checkpoint path is provided nor the download_model flag is set.
+
     Returns:
-            None
+        None
     """
 
     parser = argparse.ArgumentParser(
@@ -433,7 +480,8 @@ def main():
                         help="Slide table path (for patient-level extraction)")
     parser.add_argument("-u", "--use_cobraI", action="store_true",
                         help="Whether to use COBRA I (if not set, use COBRAII)")
-
+    parser.add_argument("-z", "--chunk_size", type=int, required=False, default=None,
+                    help="Maximum number of patients per HDF5 file (for chunked saving)")
     args = parser.parse_args()
     
     # If a config file is provided, load parameters from the config file
@@ -454,6 +502,7 @@ def main():
         args.microns = config.get("microns", args.microns)
         args.slide_table = config.get("slide_table", args.slide_table)
         args.use_cobraI = config.get("use_cobraI", args.use_cobraI)
+        args.chunk_size = config.get("chunk_size", args.chunk_size)
     
     print(f"Using configuration: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -483,7 +532,6 @@ def main():
         dtype = torch.float32
 
     if args.slide_table:
-        # patient level embeddings
         get_pat_embs(
             model,
             args.output_dir,
@@ -498,9 +546,9 @@ def main():
             weighting_fm=args.patch_encoder,
             aggregation_fm=args.patch_encoder_a,
             microns=args.microns,
+            chunk_size=args.chunk_size,      
         )
     else:
-        # slide level embeddings
         get_slide_embs(
             model,
             args.output_dir,
@@ -514,6 +562,7 @@ def main():
             weighting_fm=args.patch_encoder,
             aggregation_fm=args.patch_encoder_a,
             microns=args.microns,
+            chunk_size=args.chunk_size,     
         )
         
 if __name__ == "__main__":

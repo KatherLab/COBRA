@@ -15,7 +15,7 @@ import numpy as np
 import json
 import yaml
 
-def load_patch_feats(h5_path,device):
+def load_patch_feats(h5_path, device):
     """
     Load patch features from an HDF5 file.
     Args:
@@ -34,46 +34,38 @@ def load_patch_feats(h5_path,device):
         coords = np.array(f["coords"][:])
     return feats, coords
 
-def match_coords(feats_w,feats_a,coords_w,coords_a):
+def match_coords(feats_w, feats_a, coords_w, coords_a):
     """
     Match and extract features whose corresponding coordinates are identical in two sets.
 
-    This function sorts the given coordinate arrays (and their associated feature arrays) in lexicographical order.
-    It then finds the indices where coordinates in one set also exist in the other, and returns the corresponding
-    features from both sets. Ensure that both arrays have matching features for the overlapping coordinates; otherwise,
-    an AssertionError is raised.
+    It uses np.intersect1d to compute the intersection (in sorted order)
+    of the coordinate arrays, and returns the features accordingly.
 
     Parameters:
-        feats_w (np.ndarray): Array of features corresponding to the first set of coordinates.
-        feats_a (np.ndarray): Array of features corresponding to the second set of coordinates.
-        coords_w (np.ndarray): Array of coordinates for feats_w with shape (N, 2) where each row is [x, y].
-        coords_a (np.ndarray): Array of coordinates for feats_a with shape (M, 2) where each row is [x, y].
+        feats_w (np.ndarray): Feature array for weighted patches.
+        feats_a (np.ndarray): Feature array for auxiliary patches.
+        coords_w (np.ndarray): Coordinates for feats_w with shape (N, D).
+        coords_a (np.ndarray): Coordinates for feats_a with shape (M, D).
 
     Returns:
-        tuple: A tuple (matched_feats_w, matched_feats_a) where:
-            matched_feats_w (np.ndarray): Features from the first set corresponding to coordinates found in both arrays.
-            matched_feats_a (np.ndarray): Features from the second set corresponding to coordinates found in both arrays.
+        tuple: (matched_feats_w, matched_feats_a) where the i-th entry in both arrays corresponds 
+               to the same common coordinate.
 
     Raises:
-        AssertionError: If no matching coordinates are found or if the number of matches in both sets does not match.
+        ValueError: If no common coordinates are found.
     """
-    # Sort coordinates and features based on sorted indices
-    sorted_indices_w = np.lexsort((coords_w[:, 1], coords_w[:, 0]))
-    sorted_indices_a = np.lexsort((coords_a[:, 1], coords_a[:, 0]))
+    # Create structured views so entire rows can be compared as single elements.
+    dt = np.dtype((np.void, coords_w.dtype.itemsize * coords_w.shape[1]))
+    coords_w_view = np.ascontiguousarray(coords_w).view(dt).ravel()
+    coords_a_view = np.ascontiguousarray(coords_a).view(dt).ravel()
 
-    coords_w = coords_w[sorted_indices_w]
-    coords_a = coords_a[sorted_indices_a]
-    feats_w = feats_w[sorted_indices_w]
-    feats_a = feats_a[sorted_indices_a]
-
-    # Find matching indices after sorting
-    idx_w = np.array([i for i, coord in enumerate(coords_w) if any(np.all(coord == coords_a, axis=1))])
-    idx_a = np.array([i for i, coord in enumerate(coords_a) if any(np.all(coord == coords_w, axis=1))])
-    assert len(idx_w) == len(idx_a), "Lengths do not match"
-    assert len(idx_w) > 0, "No matching coordinates found"
+    common, idx_w, idx_a = np.intersect1d(coords_w_view, coords_a_view, return_indices=True)
+    if len(common) == 0:
+        raise ValueError("No matching coordinates found")
+    
     return feats_w[idx_w], feats_a[idx_a]
 
-def get_cobra_feats(model,patch_feats_w,patch_feats_a,top_k=None):
+def get_cobra_feats(model, patch_feats_w, patch_feats_a, top_k=None):
     """
     Compute COBRA features by aggregating patch features using attention scores from the model.
     This function takes patch features and processes them with the given model to extract
@@ -89,27 +81,25 @@ def get_cobra_feats(model,patch_feats_w,patch_feats_a,top_k=None):
                                       attention scores.
         patch_feats_a (torch.Tensor): The patch features used for the final feature aggregation.
         top_k (int, optional): The number of top patches (based on attention score) to use for feature
-                               aggregation. If specified, only the top_k patches are aggregated; if not,
-                               all patches are used.
+                               aggregation.
     Returns:
-        torch.Tensor: The aggregated COBRA features as a 1D tensor (after squeezing the unnecessary dimensions).
+        torch.Tensor: The aggregated COBRA features as a 1D tensor.
     Notes:
         - The function runs within torch.inference_mode() to disable gradient calculations.
         - When top_k is used, the function ensures that top_k does not exceed the total number of patches.
         - The attention weights are normalized using softmax before being used for aggregation.
     """
     with torch.inference_mode():
-        A = model(patch_feats_w,get_attention=True)
+        A = model(patch_feats_w, get_attention=True)
         # A.shape: (1,1,num_patches)
         if top_k:
             if A.size(-1) < top_k:
                 top_k = A.size(-1)
-            top_k_indices = torch.topk(A, top_k, dim=-1).indices # (1,1,top_k)
-            top_k_A = A.gather(-1, top_k_indices) # (1,1,top_k)
+            top_k_indices = torch.topk(A, top_k, dim=-1).indices  # (1,1,top_k)
+            top_k_A = A.gather(-1, top_k_indices)  # (1,1,top_k)
             top_k_x = patch_feats_a.gather(1, top_k_indices.squeeze(0).unsqueeze(-1).expand(-1, -1, patch_feats_a.size(-1)))
             # top_k_x.shape: (1,top_k,feat_dim)
-            cobra_feats = torch.bmm(F.softmax(top_k_A,dim=-1), top_k_x).squeeze(1)
-            # cobra_feats.shape: (1,feat_dim)
+            cobra_feats = torch.bmm(F.softmax(top_k_A, dim=-1), top_k_x).squeeze(1)
         else:
             cobra_feats = torch.bmm(A, patch_feats_a).squeeze(1)
     return cobra_feats.squeeze(0)
@@ -127,20 +117,28 @@ def save_chunk(
     microns,
 ):
     """Helper: save one chunk of features to <output_file>_chunk<chunk_index>.h5"""
-    chunk_file = os.path.join(
-        output_dir, f"{output_file.split('.h5')[0]}_{chunk_index}.h5"
-    )
+    if chunk_index > 0:
+        if chunk_index == 1:
+            os.rename(
+                os.path.join(output_dir, output_file),
+                os.path.join(output_dir, f"{output_file.split('.h5')[0]}_0.h5"),
+            )
+        chunk_file = os.path.join(
+            output_dir, f"{output_file.split('.h5')[0]}_{chunk_index}.h5"
+        )
+    else:
+        chunk_file = os.path.join(output_dir, output_file)
     os.makedirs(os.path.dirname(chunk_file), exist_ok=True)
     with h5py.File(chunk_file, "w") as f:
         for key, data in data_dict.items():
             f.create_dataset(key, data=data["feats"])
         f.attrs.update({
-            "extractor":     model_name,
-            "top_k":         top_k if top_k else "None",
-            "dtype":         str(dtype),
-            "weighting_FM":  weighting_fm,
-            "aggregation_FM":aggregation_fm,
-            "microns":       microns,
+            "extractor": model_name,
+            "top_k": top_k if top_k else "None",
+            "dtype": str(dtype),
+            "weighting_FM": weighting_fm,
+            "aggregation_FM": aggregation_fm,
+            "microns": microns,
         })
     tqdm.write(f"Saved chunk {chunk_index} to {chunk_file}")
 
@@ -158,18 +156,26 @@ def get_pat_embs(
     weighting_fm="Virchow2",
     aggregation_fm="Virchow2",
     microns=224,
-    chunk_size=None,  # New parameter for chunking
+    chunk_size=None  # Enable chunking if provided
 ):
     """
     Extract patient-level features from slide-level feature files and save them into HDF5 files.
     Supports saving in chunks if `chunk_size` is provided.
+    Uses match_coords only when auxiliary features are provided and weighting_fm != aggregation_fm.
     """
     slide_table = pd.read_csv(slide_table_path)
     patient_groups = slide_table.groupby("PATIENT")
     pat_dict = {}
 
-    chunk_index = 0  # Track the current chunk index
-    chunk_patients = []  # Track patients in the current chunk
+    # Determine if we need to run match_coords.
+    do_match = (feat_dir_a is not None) and (weighting_fm != aggregation_fm)
+    if do_match:
+        print("Using match_coords for patient-level extraction (weighting_fm != aggregation_fm).")
+    else:
+        print("Skipping match_coords for patient-level extraction (using identical features or no auxiliary features).")
+
+    chunk_index = 0
+    chunk_patients = []
 
     for patient_id, group in tqdm(patient_groups, leave=False):
         all_feats_list_w = []
@@ -185,12 +191,17 @@ def get_pat_embs(
                 h5_path_a = os.path.join(feat_dir_a, slide_filename)
                 feats_a, coords_a = load_patch_feats(h5_path_a, device)
             else:
-                feats_a = feats_w
-                coords_a = coords_w
+                feats_a, coords_a = feats_w, coords_w
+
             if feats_a is None:
                 continue
-            
-            feats_w, feats_a = match_coords(feats_w, feats_a, coords_w, coords_a)
+
+            if do_match:
+                try:
+                    feats_w, feats_a = match_coords(feats_w, feats_a, coords_w, coords_a)
+                except ValueError as e:
+                    tqdm.write(f"Patient {patient_id}, slide {slide_filename}: {str(e)}")
+                    continue
 
             all_feats_list_w.append(feats_w)
             all_feats_list_a.append(feats_a)
@@ -198,25 +209,16 @@ def get_pat_embs(
         if all_feats_list_w:
             all_feats_cat_w = torch.cat(all_feats_list_w, dim=0).unsqueeze(0)
             all_feats_cat_a = torch.cat(all_feats_list_a, dim=0).unsqueeze(0)
-            assert all_feats_cat_w.ndim == 3, (
-                f"Expected 3D tensor, got {all_feats_cat_w.ndim}"
-            )
-            assert all_feats_cat_a.ndim == 3, (
-                f"Expected 3D tensor, got {all_feats_cat_a.ndim}"
-            )
+            assert all_feats_cat_w.ndim == 3, f"Expected 3D tensor, got {all_feats_cat_w.ndim}"
+            assert all_feats_cat_a.ndim == 3, f"Expected 3D tensor, got {all_feats_cat_a.ndim}"
             assert all_feats_cat_w.shape[1] == all_feats_cat_a.shape[1], (
                 f"Expected same number of tiles, got {all_feats_cat_w.shape[1]} and {all_feats_cat_a.shape[1]}"
             )
             patient_feats = get_cobra_feats(model, all_feats_cat_w.to(dtype), all_feats_cat_a.to(dtype), top_k=top_k)
             pat_dict[patient_id] = {
-                "feats": patient_feats.to(torch.float32)
-                .detach()
-                .squeeze()
-                .cpu()
-                .numpy(),
+                "feats": patient_feats.to(torch.float32).detach().squeeze().cpu().numpy(),
             }
             chunk_patients.append(patient_id)
-
 
         if chunk_size and len(chunk_patients) >= chunk_size:
             save_chunk(
@@ -273,29 +275,13 @@ def get_slide_embs(
     weighting_fm="Virchow2",
     aggregation_fm="Virchow2",
     microns=224,
-    chunk_size=None,  # New parameter for chunking
+    chunk_size=None  # Enable chunking if provided
 ):
     """
     Generates slide-level features from tile embeddings and saves them in HDF5 files (in chunks if chunk_size is provided) 
     along with a metadata JSON file.
-
-    Parameters:
-        model (torch.nn.Module): The feature extraction model.
-        output_dir (str): Directory where output files will be saved.
-        feat_dir_w (str): Directory containing HDF5 files with primary (weighted) tile embeddings.
-        feat_dir_a (str, optional): Directory containing HDF5 files with auxiliary tile embeddings. 
-                                    Defaults to None (in which case weighted features are used).
-        output_file (str, optional): Base name for the output HDF5 file. Default is "cobra-feats.h5".
-        model_name (str, optional): Identifier for the extractor. Default is "COBRAII".
-        device (str, optional): Device to use ("cuda" or "cpu"). Default is "cuda".
-        dtype (torch.dtype, optional): Data type for processing features. Default is torch.float32.
-        top_k (int, optional): Number of top patches to use during aggregation.
-        weighting_fm (str, optional): Name/identifier for the weighting method. Default is "Virchow2".
-        aggregation_fm (str, optional): Name/identifier for the aggregation method. Default is "Virchow2".
-        microns (int, optional): Microns per patch for extraction. Default is 224.
-        chunk_size (int, optional): Maximum number of slides per output file (if provided).
+    Uses match_coords only when auxiliary features are provided and weighting_fm != aggregation_fm.
     """
-
     slide_dict = {}
     chunk_index = 0
     chunk_slides = []
@@ -310,29 +296,37 @@ def get_slide_embs(
         f"Expected same number of files, got {len(tile_emb_paths_w)} and {len(tile_emb_paths_a)}"
     )
 
+    # Determine if we need to run match_coords.
+    do_match = (feat_dir_a is not None) and (weighting_fm != aggregation_fm)
+    if do_match:
+        print("Using match_coords for slide-level extraction (weighting_fm != aggregation_fm).")
+    else:
+        print("Skipping match_coords for slide-level extraction (using identical features or no auxiliary features).")
+
     for tile_emb_path_w, tile_emb_path_a in zip(tqdm(tile_emb_paths_w), tile_emb_paths_a):
         slide_name = Path(tile_emb_path_w).stem
-
         feats_w, coords_w = load_patch_feats(tile_emb_path_w, device)
         if feats_w is None:
             continue
         if feat_dir_a:
-            # Assume the auxiliary file has the same base name in feat_dir_a
+            # Assume auxiliary file has the same base name in feat_dir_a.
             tile_emb_path_a = os.path.join(feat_dir_a, f"{slide_name}.h5")
             feats_a, coords_a = load_patch_feats(tile_emb_path_a, device)
         else:
-            feats_a = feats_w
-            coords_a = coords_w
+            feats_a, coords_a = feats_w, coords_w
         if feats_a is None:
             continue
 
-        # Match corresponding tile features based on coordinates
-        feats_w, feats_a = match_coords(feats_w, feats_a, coords_w, coords_a)
+        if do_match:
+            try:
+                feats_w, feats_a = match_coords(feats_w, feats_a, coords_w, coords_a)
+            except ValueError as e:
+                tqdm.write(f"Slide {slide_name}: {str(e)}")
+                continue
 
-        # The tile embeddings are expected to be in the first index (adjust as needed)
-        tile_embs_w = feats_w[0].unsqueeze(0)
-        tile_embs_a = feats_a[0].unsqueeze(0)
-
+        # For slide embeddings, we assume the entire tensor is used.
+        tile_embs_w = feats_w.unsqueeze(0)
+        tile_embs_a = feats_a.unsqueeze(0)
         assert tile_embs_w.ndim == 3, f"Expected 3D tensor, got {tile_embs_w.ndim}"
         assert tile_embs_a.ndim == 3, f"Expected 3D tensor, got {tile_embs_a.ndim}"
         assert tile_embs_w.shape[1] == tile_embs_a.shape[1], (
@@ -347,7 +341,6 @@ def get_slide_embs(
         chunk_slides.append(slide_name)
 
         if chunk_size and len(chunk_slides) >= chunk_size:
-            # Save current chunk using the shared save_chunk helper function
             save_chunk(
                 slide_dict,
                 chunk_index,
@@ -381,7 +374,6 @@ def get_slide_embs(
             )
             tqdm.write(f"Finished extraction, saved chunk {chunk_index} to {output_dir}")
         else:
-            # If no chunking, write all slides to a single HDF5 file
             output_path = os.path.join(output_dir, output_file)
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             with h5py.File(output_path, "w") as f:
@@ -406,49 +398,32 @@ def get_slide_embs(
     with open(os.path.join(output_dir, "metadata.json"), "w") as json_file:
         json.dump(metadata, json_file, indent=4)
 
-
 def main():
     """
-    Main function for extracting slide-level or patient-level embeddings using the COBRA model.
+    Main function for extracting slide or patient embeddings using the COBRA model.
 
     This function parses command-line arguments (and optionally a YAML configuration file) to set up the
-    extraction parameters, including:
-      - Model weights (download or load checkpoint)
-      - Input directories for tile feature files (weighted and auxiliary)
-      - Extraction mode: patient-level (if a slide table is provided) or slide-level (if not)
-      - Aggregation settings (e.g., top_k tiles, patch encoders, microns per patch)
-      - Optional chunking: split the output HDF5 files if the number of patients or slides exceeds a given chunk size
-
-    When a slide table is provided via the '--slide_table' argument, patient-level embeddings are computed
-    by grouping slides per patient. Otherwise, slide-level embeddings are computed by aggregating tile embeddings
-    into a single output file (or into multiple chunked files if --chunk_size is specified).
+    extraction parameters. It supports two modes:
+     - Patient-level embeddings (if a slide table is provided)
+     - Slide-level embeddings (if not)
 
     Command-line arguments include:
-        -c, --config (str): Optional path to a YAML configuration file to override command-line arguments.
-        -d, --download_model: Flag to indicate whether to download model weights.
+        -c, --config (str): Optional path to a YAML configuration file.
+        -d, --download_model: Flag to download model weights.
         -w, --checkpoint_path (str): Path to the model checkpoint.
-        -k, --top_k (int): Number of top tiles to consider for feature aggregation.
-        -o, --output_dir (str): Directory where the extracted features will be saved.
+        -k, --top_k (int): Top k tiles to use for embedding aggregation.
+        -o, --output_dir (str): Directory to save extracted features.
         -f, --feat_dir (str): Directory containing primary tile feature files.
-        -g, --feat_dir_a (str): Directory containing auxiliary tile feature files for aggregation.
-        -m, --model_name (str): Identifier for the model (default: "COBRAII").
-        -p, --patch_encoder (str): Name of the patch encoder (default: "Virchow2").
-        -a, --patch_encoder_a (str): Name of the patch encoder used for aggregation (default: "Virchow2").
-        -e, --h5_name (str): Base name of the output HDF5 file (default: "cobra_feats.h5").
-        -r, --microns (int): Microns per patch used for extraction (default: 224).
-        -s, --slide_table (str): Path to a slide table for patient-level extraction.
-        -u, --use_cobraI: Flag to use the COBRA I model instead of COBRAII.
-        -z, --chunk_size (int): Maximum number of patients or slides per HDF5 file. 
-                                When set, the output is split into multiple chunked files.
-
-    Raises:
-        FileNotFoundError: If a provided checkpoint path does not exist.
-        ValueError: If neither a checkpoint path is provided nor the download_model flag is set.
-
-    Returns:
-        None
+        -g, --feat_dir_a (str): Directory containing auxiliary tile feature files.
+        -m, --model_name (str): Model name (default: "COBRAII").
+        -p, --patch_encoder (str): Patch encoder name (default: "Virchow2").
+        -a, --patch_encoder_a (str): Patch encoder name used for aggregation (default: "Virchow2").
+        -e, --h5_name (str): Output HDF5 file name (default: "cobra_feats.h5").
+        -r, --microns (int): Microns per patch (default: 224).
+        -s, --slide_table (str): Slide table path for patient-level extraction.
+        -u, --use_cobraI: Flag to use the COBRA I model (default uses COBRAII).
+        -z, --chunk_size (int): Maximum number of slides or patients per HDF5 file (optional).
     """
-
     parser = argparse.ArgumentParser(
         description="Extract slide/patient embeddings using COBRA model"
     )
@@ -481,10 +456,10 @@ def main():
     parser.add_argument("-u", "--use_cobraI", action="store_true",
                         help="Whether to use COBRA I (if not set, use COBRAII)")
     parser.add_argument("-z", "--chunk_size", type=int, required=False, default=None,
-                    help="Maximum number of patients per HDF5 file (for chunked saving)")
+                        help="Maximum number of slides or patients per HDF5 file (for chunked saving)")
     args = parser.parse_args()
     
-    # If a config file is provided, load parameters from the config file
+    # If a config file is provided, load parameters from the config file.
     if args.config is not None:
         with open(args.config, "r") as f:
             config = yaml.safe_load(f)
@@ -532,6 +507,7 @@ def main():
         dtype = torch.float32
 
     if args.slide_table:
+        # Patient-level embeddings
         get_pat_embs(
             model,
             args.output_dir,
@@ -549,6 +525,7 @@ def main():
             chunk_size=args.chunk_size,      
         )
     else:
+        # Slide-level embeddings
         get_slide_embs(
             model,
             args.output_dir,

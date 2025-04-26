@@ -316,16 +316,18 @@ def get_slide_embs(
     )
     for tile_emb_path_w,tile_emb_path_a in zip(tqdm(tile_emb_paths_w), tile_emb_paths_a):
         slide_name = Path(tile_emb_path_w).stem
-        feats_w = load_patch_feats(tile_emb_path_w, device)
+        feats_w, coords_w = load_patch_feats(tile_emb_path_w, device)
         if feats_w is None:
             continue
         if feat_dir_a:
             tile_emb_path_a = os.path.join(feat_dir_a, f"{slide_name}.h5")
-            feats_a = load_patch_feats(tile_emb_path_a, device)
+            feats_a, coords_a = load_patch_feats(tile_emb_path_a, device)
         else:
             feats_a = feats_w
+            coords_a = coords_w
         if feats_a is None:
             continue
+        feats_w,feats_a = match_coords(feats_w,feats_a,coords_w,coords_a)
         tile_embs_w = feats_w[0].unsqueeze(0)
         tile_embs_a = feats_a[0].unsqueeze(0)
 

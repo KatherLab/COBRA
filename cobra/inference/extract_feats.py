@@ -453,6 +453,7 @@ def main():
         args.h5_name = config.get("h5_name", args.h5_name)
         args.microns = config.get("microns", args.microns)
         args.slide_table = config.get("slide_table", args.slide_table)
+        args.use_cobraI = config.get("use_cobraI", args.use_cobraI)
     
     print(f"Using configuration: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"

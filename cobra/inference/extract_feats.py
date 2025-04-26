@@ -357,7 +357,7 @@ def main():
     parser.add_argument("-m", "--model_name", type=str, required=False, default="COBRAII",
                         help="Model name")
     parser.add_argument("-p", "--patch_encoder", type=str, required=False, default="Virchow2",
-                        help="Patch encoder name")s
+                        help="Patch encoder name")
     parser.add_argument("-a", "--patch_encoder_a", type=str, required=False, default="Virchow2",
                         help="Patch encoder name used for aggregation")
     parser.add_argument("-e", "--h5_name", type=str, required=False, default="cobra_feats.h5",

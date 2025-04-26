@@ -316,16 +316,18 @@ def get_slide_embs(
     )
     for tile_emb_path_w,tile_emb_path_a in zip(tqdm(tile_emb_paths_w), tile_emb_paths_a):
         slide_name = Path(tile_emb_path_w).stem
-        feats_w = load_patch_feats(tile_emb_path_w, device)
+        feats_w, coords_w = load_patch_feats(tile_emb_path_w, device)
         if feats_w is None:
             continue
         if feat_dir_a:
             tile_emb_path_a = os.path.join(feat_dir_a, f"{slide_name}.h5")
-            feats_a = load_patch_feats(tile_emb_path_a, device)
+            feats_a, coords_a = load_patch_feats(tile_emb_path_a, device)
         else:
             feats_a = feats_w
+            coords_a = coords_w
         if feats_a is None:
             continue
+        feats_w,feats_a = match_coords(feats_w,feats_a,coords_w,coords_a)
         tile_embs_w = feats_w[0].unsqueeze(0)
         tile_embs_a = feats_a[0].unsqueeze(0)
 
@@ -451,28 +453,21 @@ def main():
         args.h5_name = config.get("h5_name", args.h5_name)
         args.microns = config.get("microns", args.microns)
         args.slide_table = config.get("slide_table", args.slide_table)
+        args.use_cobraI = config.get("use_cobraI", args.use_cobraI)
     
     print(f"Using configuration: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
     cobra_func = get_cobra if args.use_cobraI else get_cobraII
-    if args.download_model:
-            model = cobra_func(
-                download_weights=args.download_model,
+    if args.checkpoint_path:
+        model = cobra_func(
+                download_weights=(not os.path.exists(args.checkpoint_path)),
+                checkpoint_path=args.checkpoint_path,
             )
     else:
-        if args.checkpoint_path:
-            if os.path.exists(args.checkpoint_path):
-                model = cobra_func(
-                    checkpoint_path=args.checkpoint_path,
-                )
-            else:
-                raise FileNotFoundError(
-                    f"Checkpoint file {args.checkpoint_path} not found"
-                )
-        else:
-            raise ValueError(
-                "Please provide either a checkpoint path or set the download_model flag"
-            )
+        print("No checkpoint path provided. Downloading model weights...")
+        model = cobra_func(
+            download_weights=True,
+        )
     model = model.to(device)
     model.eval()
 

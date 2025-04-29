@@ -73,7 +73,7 @@ To deploy the COBRA model to extract WSI-level or even patient-level embeddings,
       - Supported patch encoders to generate weighting: CTransPath, UNI, Virchow2, H_optimus_0
       - Supported patch encoders for patch feature aggregation: all existing patch encoders
     - **COBRA II:**
-      - Supported tissue types: all cohorts included in TCGA
+      - Supported tissue types: all tissue types included in TCGA
       - Supported patch encoders to generate COBRAII weighting: CONCH, UNI, Virchow2, H_optimus_0
       - Supported patch encoders for patch feature aggregation: all existing patch encoders
 

@@ -435,9 +435,9 @@ def main():
                         help="Path to model checkpoint")
     parser.add_argument("-k", "--top_k", type=int, required=False, default=None,
                         help="Top k tiles to use for slide/patient embedding")
-    parser.add_argument("-o", "--output_dir", type=str, required=True,
+    parser.add_argument("-o", "--output_dir", type=str, required=False,
                         help="Directory to save extracted features")
-    parser.add_argument("-f", "--feat_dir", type=str, required=True,
+    parser.add_argument("-f", "--feat_dir", type=str, required=False,
                         help="Directory containing tile feature files")
     parser.add_argument("-g", "--feat_dir_a", type=str, required=False, default=None,
                         help="Directory containing tile feature files for aggregation")

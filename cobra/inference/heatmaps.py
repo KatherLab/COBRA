@@ -13,8 +13,9 @@ from PIL import Image
 import openslide
 import yaml
 
-from cobra.utils.load_cobra import get_cobraII
+from cobra.utils.load_cobra import get_cobraII, get_cobra
 from cobra.utils.get_mpp import get_slide_mpp_
+#from cobra.utils.load_cobra import get_cobraI
 
 def get_slide_thumbnail(slide, heatmap_shape, heat_map_scale_factor=8):
     """
@@ -160,7 +161,7 @@ def main(device="cuda"):
                         help="Directory to save the generated heatmaps.")
     parser.add_argument("-v", "--stamp_version", type=int, default=2, 
                         help="Stamp version that was used for extraction.")
-    
+    parser.add_argument('-u',"--use_cobraI", type=bool, default=False, help="Use the COBRA I model instead of COBRA II")
     args = parser.parse_args()
     
     # If a config file is provided, load and override the defaults
@@ -175,11 +176,15 @@ def main(device="cuda"):
         args.patch_size = config.get("patch_size", args.patch_size)
         args.output_dir = config.get("output_dir", args.output_dir)
         args.stamp_version = config.get("stamp_version", args.stamp_version)
-    
+        args.use_cobraI = config.get("use_cobraI", args.use_cobraI)
+
     print(f"Using configuration: {args}")
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    model = get_cobraII(download_weights=(not exists(args.checkpoint_path)), checkpoint_path=args.checkpoint_path)
+    if args.use_cobraI:
+        model = get_cobra(download_weights=(not exists(args.checkpoint_path)), checkpoint_path=args.checkpoint_path)
+    else:
+        model = get_cobraII(download_weights=(not exists(args.checkpoint_path)), checkpoint_path=args.checkpoint_path)
     model.eval()
     model.to(device)
     for wsi in tqdm([f for f in os.listdir(args.wsi_dir) if os.path.isfile(os.path.join(args.wsi_dir, f))]):

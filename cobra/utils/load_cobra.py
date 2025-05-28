@@ -32,9 +32,18 @@ def get_cobra(download_weights=False, checkpoint_path="weights/pytorch_model.bin
     else:
         if not os.path.exists(checkpoint_path):
             raise FileNotFoundError(f"Checkpoint file {checkpoint_path} not found")
-    state_dict = torch.load(checkpoint_path, map_location="cpu")
+    state_dict = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     model = Cobra(input_dims=[768,1024,1280,1536],)
-    model.load_state_dict(state_dict)
+    if "state_dict" in list(state_dict.keys()):
+        chkpt = state_dict["state_dict"]
+        cobra_weights = {k.split("momentum_enc.")[-1]:v for k,v in chkpt.items() if "momentum_enc" in k and "momentum_enc.proj" not in k}
+        if len(list(cobra_weights.keys())) == 0:
+            # from stamp finetuning
+            print("Loading STAMP model..")
+            cobra_weights = {k.split("cobra.")[-1]:v for k,v in chkpt.items() if "cobra" in k}
+    else:
+        cobra_weights = state_dict
+    model.load_state_dict(cobra_weights)
     print("COBRA model loaded successfully")
     return model
 
@@ -72,6 +81,7 @@ def get_cobraII(download_weights=False, checkpoint_path="weights/cobraII.pth.tar
         cobra_weights = {k.split("momentum_enc.")[-1]:v for k,v in chkpt.items() if "momentum_enc" in k and "momentum_enc.proj" not in k}
         if len(list(cobra_weights.keys())) == 0:
             # from stamp finetuning
+            print("Loading STAMP model..")
             cobra_weights = {k.split("cobra.")[-1]:v for k,v in chkpt.items() if "cobra" in k}
     else:
         cobra_weights = state_dict

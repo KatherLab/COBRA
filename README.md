@@ -326,10 +326,12 @@ This script sets up the SSL pretraining using your specified configuration and t
 If you find our work useful in your research or if you use parts of this code please consider citing our paper:
 
 ```bibtex
-@inproceedings{cobra,
-  title     = {Unsupervised Foundation Model-Agnostic Slide-Level Representation Learning},
-  author    = {Tim Lenz* and Peter Neidlinger* and Marta Ligero and Georg Wölflein and Marko van Treeck and Jakob Nikolas Kather},
-  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-  year      = {2025}
+@InProceedings{COBRA_2025_CVPR,
+    author    = {Lenz, Tim* and Neidlinger, Peter* and Ligero, Marta and W\"olflein, Georg and van Treeck, Marko and Kather, Jakob N.},
+    title     = {Unsupervised Foundation Model-Agnostic Slide-Level Representation Learning},
+    booktitle = {Proceedings of the Computer Vision and Pattern Recognition Conference (CVPR)},
+    month     = {June},
+    year      = {2025},
+    pages     = {30807-30817}
 }
 ```

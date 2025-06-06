@@ -2,9 +2,12 @@
 
 
 <!-- [Preprint](https://arxiv.org/abs/2411.13623) | [Download Models](https://huggingface.co/KatherLab/COBRA) | [Cite](#citation) -->
-<a href='https://arxiv.org/abs/2411.13623'><img src='https://img.shields.io/badge/Paper-Arxiv-red'></a> 
+<!-- https://openaccess.thecvf.com/content/CVPR2025/papers/Lenz_Unsupervised_Foundation_Model-Agnostic_Slide-Level_Representation_Learning_CVPR_2025_paper.pdf -->
+<a href='https://openaccess.thecvf.com/content/CVPR2025/papers/Lenz_Unsupervised_Foundation_Model-Agnostic_Slide-Level_Representation_Learning_CVPR_2025_paper.pdf'><img src='https://img.shields.io/badge/Paper-CVPR25-blue'></a> 
 <a href='#citation'><img src='https://img.shields.io/badge/Paper-Cite-blue'></a>
 <a href='https://huggingface.co/KatherLab/COBRA'><img src='https://img.shields.io/badge/Model-Huggingface-yellow'></a>
+<a href='https://arxiv.org/abs/2411.13623'><img src='https://img.shields.io/badge/Preprint-Arxiv-red'></a> 
+
 
 ## Table of Contents
 

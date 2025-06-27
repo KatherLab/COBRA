@@ -15,20 +15,18 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "hatchling",
-    "torch>=2.4.1",
+    "torch==2.6.0",
     "h5py>=3.12.1",
     "jinja2>=3.1.4",
     "numpy>=2.0.2",
     "pandas>=2.2.3",
     "pyyaml>=6.0.2",
     "tqdm>=4.67.1",
-    "mamba-ssm>=2.2.2",
-    "causal-conv1d>=1.4.0",
+    "mamba-ssm @ git+https://github.com/KatherLab/mamba.git",
+    "causal-conv1d @ git+https://github.com/KatherLab/causal-conv1d.git",
     "torchvision>=0.19.1",
     "einops>=0.8.0",
     "huggingface-hub>=0.26.5",
-    "setuptools",
     "torchmetrics>=1.6.1",
     "pytorch-lightning>=2.5.0.post0",
     "scikit-learn>=1.6.1",
@@ -39,7 +37,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "torch==2.6.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.metadata]

@@ -8,7 +8,7 @@ authors = [
     {name = "Tim Lenz", email = "tim.lenz@tu-dresden.de"},
     {name = "Peter Neidlinger", email = "peter.neidlinger@fau.de"}
 ]
-requires-python = ">=3.10.0"
+requires-python = ">=3.10.0, <3.13"
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
@@ -22,8 +22,9 @@ dependencies = [
     "pandas>=2.2.3",
     "pyyaml>=6.0.2",
     "tqdm>=4.67.1",
-    "mamba-ssm @ git+https://github.com/KatherLab/mamba.git",
-    "causal-conv1d @ git+https://github.com/KatherLab/causal-conv1d.git",
+    # "mamba-ssm @ https://github.com/state-spaces/mamba/releases/download/v2.2.4/mamba_ssm-2.2.4+cu12torch2.6cxx11abiTRUE-cp312-cp312-linux_x86_64.whl",
+    "mamba-ssm @ git+https://github.com/KatherLab/mamba.git@dcf2c2409e685c7e909463db743b9f7796110c89",
+    # "causal-conv1d @ git+https://github.com/KatherLab/causal-conv1d.git",
     "torchvision>=0.19.1",
     "einops>=0.8.0",
     "huggingface-hub>=0.26.5",

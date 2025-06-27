@@ -113,6 +113,16 @@ wheels = [
 ]
 
 [[package]]
+name = "causal-conv1d"
+version = "1.5.0.post8"
+source = { git = "https://github.com/KatherLab/causal-conv1d.git?rev=5d231fb1088220e1ff48d71ba16c64c5133e23d4#5d231fb1088220e1ff48d71ba16c64c5133e23d4" }
+dependencies = [
+    { name = "ninja" },
+    { name = "packaging" },
+    { name = "torch" },
+]
+
+[[package]]
 name = "certifi"
 version = "2025.1.31"
 source = { registry = "https://pypi.org/simple" }
@@ -174,6 +184,7 @@ name = "cobra"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
+    { name = "causal-conv1d" },
     { name = "einops" },
     { name = "h5py" },
     { name = "huggingface-hub" },
@@ -196,6 +207,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
+    { name = "causal-conv1d", git = "https://github.com/KatherLab/causal-conv1d.git?rev=5d231fb1088220e1ff48d71ba16c64c5133e23d4" },
     { name = "einops", specifier = ">=0.8.0" },
     { name = "h5py", specifier = ">=3.12.1" },
     { name = "huggingface-hub", specifier = ">=0.26.5" },

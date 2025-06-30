@@ -23,7 +23,7 @@ dependencies = [
     "pyyaml>=6.0.2",
     "tqdm>=4.67.1",
     # "mamba-ssm @ https://github.com/state-spaces/mamba/releases/download/v2.2.4/mamba_ssm-2.2.4+cu12torch2.6cxx11abiTRUE-cp312-cp312-linux_x86_64.whl",
-    "mamba-ssm @ git+https://github.com/KatherLab/mamba.git@0720cc2ee11f3fb99fb81985fe9a7cd7d35476d1",
+    "mamba-ssm @ git+https://github.com/KatherLab/mamba.git@ffef06879361ea36893697d88f43d4f76bb28877",
     "causal-conv1d @ git+https://github.com/KatherLab/causal-conv1d.git@55b4626e1a2d3d6b939811725f2f3ef65b7b3ff1",
     "torchvision>=0.19.1",
     "einops>=0.8.0",

@@ -149,14 +149,18 @@ def get_pat_embs(
 
         for _, row in group.iterrows():
             slide_filename = row["FILENAME"]
-            h5_path_w = os.path.join(feat_dir_w, slide_filename)
+            h5_path_w = os.path.join(feat_dir_w, str(slide_filename))
+            if not h5_path_w.endswith(".h5"):
+                h5_path_w+=".h5"
             feats_w, coords_w = load_patch_feats(h5_path_w, device)
             if feats_w is None:
                 continue
 
             # Load auxiliary features if available; otherwise, use weighted features.
             if feat_dir_a:
-                h5_path_a = os.path.join(feat_dir_a, slide_filename)
+                h5_path_a = os.path.join(feat_dir_a, str(slide_filename))
+                if not h5_path_a.endswith(".h5"):
+                    h5_path_a+=".h5"
                 feats_a, coords_a = load_patch_feats(h5_path_a, device)
             else:
                 feats_a, coords_a = feats_w, coords_w

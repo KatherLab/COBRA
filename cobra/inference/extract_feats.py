@@ -219,6 +219,9 @@ def get_pat_embs(
                 f"Expected same number of tiles, got {all_feats_cat_w.shape[1]} and {all_feats_cat_a.shape[1]}"
             )
             patient_feats = get_cobra_feats(model, all_feats_cat_w.to(dtype), all_feats_cat_a.to(dtype), top_k=top_k)
+            if torch.isnan(patient_feats).any():
+                tqdm.write(f"Skipping patient {patient_id} due to NaNs in features")
+                continue
             pat_dict[patient_id] = {
                 "feats": patient_feats.to(torch.float32).detach().squeeze().cpu().numpy(),
             }

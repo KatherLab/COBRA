@@ -241,7 +241,7 @@ requires-dist = [
     { name = "h5py", specifier = ">=3.12.1" },
     { name = "huggingface-hub", specifier = ">=0.26.5" },
     { name = "jinja2", specifier = ">=3.1.4" },
-    { name = "mamba-ssm", git = "https://github.com/KatherLab/mamba.git?rev=6245517f1e0647d6c56373b6564d18f6b21eecb1" },
+    { name = "mamba-ssm", git = "https://github.com/KatherLab/mamba.git?rev=d0d4192621889b26f9669ea4a8e6fe79cc84e8d9" },
     { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "numpy", specifier = ">=2.0.2" },
     { name = "openpyxl", specifier = ">=3.1.5" },
@@ -673,7 +673,7 @@ wheels = [
 [[package]]
 name = "mamba-ssm"
 version = "2.2.4"
-source = { git = "https://github.com/KatherLab/mamba.git?rev=6245517f1e0647d6c56373b6564d18f6b21eecb1#6245517f1e0647d6c56373b6564d18f6b21eecb1" }
+source = { git = "https://github.com/KatherLab/mamba.git?rev=d0d4192621889b26f9669ea4a8e6fe79cc84e8d9#d0d4192621889b26f9669ea4a8e6fe79cc84e8d9" }
 dependencies = [
     { name = "einops" },
     { name = "ninja" },

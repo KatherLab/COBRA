@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10.0"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -131,7 +131,7 @@ wheels = [
 [[package]]
 name = "causal-conv1d"
 version = "1.5.0.post8"
-source = { git = "https://github.com/KatherLab/causal-conv1d.git?rev=e2010aa448344c31959a9d345d654e79574fca8a#e2010aa448344c31959a9d345d654e79574fca8a" }
+source = { git = "https://github.com/KatherLab/causal-conv1d.git?rev=b73d1ca0e0726ba6520c38d342bd411bb5850064#b73d1ca0e0726ba6520c38d342bd411bb5850064" }
 dependencies = [
     { name = "ninja" },
     { name = "packaging" },
@@ -236,12 +236,12 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "causal-conv1d", git = "https://github.com/KatherLab/causal-conv1d.git?rev=e2010aa448344c31959a9d345d654e79574fca8a" },
+    { name = "causal-conv1d", git = "https://github.com/KatherLab/causal-conv1d.git?rev=b73d1ca0e0726ba6520c38d342bd411bb5850064" },
     { name = "einops", specifier = ">=0.8.0" },
     { name = "h5py", specifier = ">=3.12.1" },
     { name = "huggingface-hub", specifier = ">=0.26.5" },
     { name = "jinja2", specifier = ">=3.1.4" },
-    { name = "mamba-ssm", git = "https://github.com/KatherLab/mamba.git?rev=7307998e83288ac058d0cdeb0cbae568f251b864" },
+    { name = "mamba-ssm", git = "https://github.com/KatherLab/mamba.git?rev=d9657c0d42634d5876af2cf498c10efdd42a9964" },
     { name = "matplotlib", specifier = ">=3.10.1" },
     { name = "numpy", specifier = ">=2.0.2" },
     { name = "openpyxl", specifier = ">=3.1.5" },
@@ -251,7 +251,7 @@ requires-dist = [
     { name = "pytorch-lightning", specifier = ">=2.5.0.post0" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "scikit-learn", specifier = ">=1.6.1" },
-    { name = "torch", specifier = "==2.6.0" },
+    { name = "torch", specifier = ">=2.6.0" },
     { name = "torchmetrics", specifier = ">=1.6.1" },
     { name = "torchvision", specifier = ">=0.19.1" },
     { name = "tqdm", specifier = ">=4.67.1" },
@@ -673,7 +673,7 @@ wheels = [
 [[package]]
 name = "mamba-ssm"
 version = "2.2.4"
-source = { git = "https://github.com/KatherLab/mamba.git?rev=7307998e83288ac058d0cdeb0cbae568f251b864#7307998e83288ac058d0cdeb0cbae568f251b864" }
+source = { git = "https://github.com/KatherLab/mamba.git?rev=d9657c0d42634d5876af2cf498c10efdd42a9964#d9657c0d42634d5876af2cf498c10efdd42a9964" }
 dependencies = [
     { name = "einops" },
     { name = "ninja" },

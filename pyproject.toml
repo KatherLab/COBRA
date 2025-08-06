@@ -37,7 +37,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["hatchling", "torch==2.6.0"]
+requires = ["hatchling", "torch"]
 build-backend = "hatchling.build"
 
 [tool.hatch.metadata]
@@ -48,3 +48,7 @@ allow-direct-references = true
 markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]
+
+[tool.uv.extra-build-dependencies]
+mamba-ssm = [{ requirement = "torch", match-runtime = true }]
+causal-conv1d = [{ requirement = "torch", match-runtime = true }]

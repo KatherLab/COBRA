@@ -52,7 +52,7 @@ def load_patch_features(feat_path, device="cuda"):
     
 
 def create_heatmap(model, slide_name, wsi_path, feat_path, output_dir, microns_per_patch=112,
-     patch_size=224, scale_factor=8, device="cuda" , stamp_v=1):
+     patch_size=224, scale_factor=8, device="cuda" , stamp_v=1,default_mpp=None):
     """
     Create a heatmap for the given slide using the specified model and save it to the output directory.
 
@@ -82,7 +82,11 @@ def create_heatmap(model, slide_name, wsi_path, feat_path, output_dir, microns_p
     coords_norm = coords // stride
     
     slide = openslide.open_slide(wsi_path)
-    mpp = get_slide_mpp_(slide, default_mpp=None)
+    if default_mpp:
+        default_mpp = float(default_mpp)
+    mpp = get_slide_mpp_(slide, default_mpp=default_mpp)
+    #except MPPExtractionError:
+    #mpp = cfg[""]
     dims_um = np.ceil(np.array(slide.dimensions) * mpp / (patch_feat_mpp * patch_size)).astype(np.int32)
     if not np.all(coords_norm.max(0) <= dims_um):
         tqdm.write(f"Warning: Coordinates exceed slide dimensions. Trying to flip axes...")
@@ -201,6 +205,7 @@ def main(device="cuda"):
                        patch_size=args.patch_size,
                        scale_factor=8,
                        device=device,
+                       default_mpp=config.get("default_mpp",None),
                        stamp_v=args.stamp_version)
 
 if __name__ == "__main__":

@@ -8,7 +8,7 @@ authors = [
     {name = "Tim Lenz", email = "tim.lenz@tu-dresden.de"},
     {name = "Peter Neidlinger", email = "peter.neidlinger@fau.de"}
 ]
-requires-python = ">=3.12,<3.13" # limit as mamba-ssm & causal-conv1d have no torch 2.8 & python 13 wheels available
+requires-python = ">=3.11,<3.13" # limit as mamba-ssm & causal-conv1d have no torch 2.8 & python 13 wheels available
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

@@ -8,22 +8,24 @@ authors = [
     {name = "Tim Lenz", email = "tim.lenz@tu-dresden.de"},
     {name = "Peter Neidlinger", email = "peter.neidlinger@fau.de"}
 ]
-requires-python = ">=3.10.0"
+requires-python = ">=3.12,<3.13" # limit as mamba-ssm & causal-conv1d have no torch 2.8 & python 13 wheels available
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "torch>=2.6.0",
+    "torch>=2.8.0",
     "h5py>=3.12.1",
     "jinja2>=3.1.4",
     "numpy>=2.0.2",
     "pandas>=2.2.3",
     "pyyaml>=6.0.2",
     "tqdm>=4.67.1",
-    "mamba-ssm @ git+https://github.com/KatherLab/mamba.git@3dad301098b721ee5c93d9ad16aafbbc1dc42cfd",
-    "causal-conv1d @ git+https://github.com/KatherLab/causal-conv1d.git@dededae18d0258ccec833ab950d45279f1616fd1",
+    "mamba-ssm",
+    "causal-conv1d",
+    # "mamba-ssm @ git+https://github.com/KatherLab/mamba.git@79460dccba174cf561cb996c3d498e051dda964a",
+    # "causal-conv1d @ git+https://github.com/KatherLab/causal-conv1d.git@6e2d7595cdd4ae2a801d529010890f9d54fbdba4",
     "torchvision>=0.19.1",
     "einops>=0.8.0",
     "huggingface-hub>=0.26.5",
@@ -52,3 +54,11 @@ markers = [
 [tool.uv.extra-build-dependencies]
 mamba-ssm = [{ requirement = "torch", match-runtime = true }]
 causal-conv1d = [{ requirement = "torch", match-runtime = true }]
+
+[[tool.uv.dependency-metadata]]
+name = "causal-conv1d"
+requires-dist = ["torch>=2.7.0"]
+
+[[tool.uv.dependency-metadata]]
+name = "mamba-ssm"
+requires-dist = ["torch>=2.7.0"]

@@ -258,7 +258,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--job_id",
-        default="",
+        default="test",
         type=str,
         help="Job ID for the training run",
     )

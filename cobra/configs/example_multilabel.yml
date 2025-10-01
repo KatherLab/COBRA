@@ -1,0 +1,92 @@
+extract_feats:
+  download_model: false
+  checkpoint_path: "/path/to/checkpoint.pth.tar"
+  top_k: null
+  output_dir: "/path/to/slide_embeddings"
+  feat_dir: "/path/to/tile_embeddings"
+  feat_dir_a: null # Optional: for aggregation features
+  model_name: "COBRAII"
+  patch_encoder: "Virchow2"
+  patch_encoder_a: "Virchow2"
+  h5_name: "cobraII_feats.h5"
+  microns: 224
+  use_cobraI: false
+  slide_table: null  # Provide for patient-level extraction; omit for slide-level
+
+# Example configuration for multilabel classification
+train:
+  csv_path: "/path/to/metadata.csv"
+  # For multi-label classification, use target_columns (list):
+  target_columns: ["MALIGNANT", "AGGRESSIVE", "METASTATIC"]
+  patient_id_column: "PATIENT_ID"
+  h5_path: "/path/to/extracted_features.h5"
+  output_folder: "/path/to/crossval_multilabel"
+  hps:
+    lr: 0.0005
+    hidden_dim: 512
+    max_epochs: 64
+    patience: 16
+    batch_size: 32
+    num_workers: 8
+    n_folds: 5
+    dropout: 0.3
+
+# Example configuration for multilabel deployment
+deploy:
+  csv_path: "/path/to/test_metadata.csv"
+  # For multi-label classification, use target_columns (list):
+  target_columns: ["MALIGNANT", "AGGRESSIVE", "METASTATIC"]
+  patient_id_column: "PATIENT_ID"
+  h5_path: "/path/to/extracted_features.h5"
+  output_folder: "/path/to/deploy_multilabel"
+  label_encoders_path: "/path/to/crossval_multilabel/label_encoders.pkl"
+  hps:
+    hidden_dim: 512
+    n_folds: 5
+
+heatmap:
+  feat_dir: "/path/to/tile_embeddings"
+  wsi_dir: "/path/to/wsi_files"
+  checkpoint_path: "/path/to/heatmap_checkpoint.pth.tar"
+  microns: 112
+  patch_size: 224
+  output_dir: "/path/to/heatmap_output"
+  stamp_version: 2
+
+model:
+  nr_heads: 4
+  nr_mamba_layers: 1
+  dim: 768
+  input_dims:
+    - 512
+    - 1024
+    - 1280
+    - 1536
+  l_dim: 256
+  att_dim: 256
+  dropout: 0.2
+  d_state: 128
+  model_name: "cobraII"
+
+ssl:
+  moco_m: 0.99
+  moco_t: 0.2
+  lr: 5e-4
+  warmup_epochs: 50
+  weight_decay: 0.1
+  epochs: 2000
+  workers: 56
+  batch_size: 1024
+
+general:
+  nr_feats: 768
+  fms:
+    - "fm1"
+    - "fm2"
+    - "fm3"
+    - "fm4"
+  feat_base_paths:
+    - "/path/to/features_set1"
+    - "/path/to/features_set2"
+  paths:
+    out_dir: "/path/to/pretrain_output"

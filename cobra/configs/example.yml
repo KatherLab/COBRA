@@ -15,7 +15,10 @@ extract_feats:
 
 train:
   csv_path: "/path/to/metadata.csv"
+  # For single-label classification, use target_column:
   target_column: "TARGET"
+  # For multi-label classification, use target_columns (list):
+  # target_columns: ["TARGET1", "TARGET2", "TARGET3"]
   patient_id_column: "PATIENT_ID"
   h5_path: "/path/to/extracted_features.h5"
   output_folder: "/path/to/crossval"
@@ -31,11 +34,14 @@ train:
 
 deploy:
   csv_path: "/path/to/test_metadata.csv"
+  # For single-label classification, use target_column:
   target_column: "TARGET"
+  # For multi-label classification, use target_columns (list):
+  # target_columns: ["TARGET1", "TARGET2", "TARGET3"]
   patient_id_column: "PATIENT_ID"
   h5_path: "/path/to/extracted_features.h5"
   output_folder: "/path/to/deploy"
-  label_encoder_path: "/path/to/label_encoder.pkl"
+  label_encoders_path: "/path/to/label_encoders.pkl"  # Updated filename
   hps:
     hidden_dim: 512
     n_folds: 5
